@@ -1,3 +1,17 @@
+e-mail:
+test@test.lv
+
+Password:
+123_Test
+
+TODO:
+
+--General
+Ja nonullē datu bāzi, tad nav erroru un neizmet no sistēmas (paliek sessionID)
+
+--Transactions
+
+
 # Finance Tracker (PHP MVC)
 
 Simple dark-themed finance tracker built with PHP, HTML, MySQL, CSS, JavaScript, and Chart.js.
@@ -16,7 +30,7 @@ Simple dark-themed finance tracker built with PHP, HTML, MySQL, CSS, JavaScript,
   - Separate income and expense category management
   - Custom category add/edit/delete (per user)
   - Built-in income: Work, Freelance, Side-job
-  - Built-in expense: Food, Bills, Transportations, Entertainment
+  - Built-in expense: Food, Bills, Transportation, Entertainment
 - Charts and reports:
   - Expense category pie chart (current month)
   - Monthly expense line chart (last 12 months)
@@ -64,3 +78,4 @@ php -S localhost:8080 -t public
 
 - Routes are defined in `routes.php`.
 - Because of the built-in PHP server command, route links are served through `index.php` (example: `/index.php/dashboard`).
+

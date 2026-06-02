@@ -57,8 +57,8 @@ SELECT NULL, 'Bills', 'expense', 1
 WHERE NOT EXISTS (SELECT 1 FROM categories WHERE user_id IS NULL AND name = 'Bills' AND type = 'expense');
 
 INSERT INTO categories (user_id, name, type, is_default)
-SELECT NULL, 'Transportations', 'expense', 1
-WHERE NOT EXISTS (SELECT 1 FROM categories WHERE user_id IS NULL AND name = 'Transportations' AND type = 'expense');
+SELECT NULL, 'Transportation', 'expense', 1
+WHERE NOT EXISTS (SELECT 1 FROM categories WHERE user_id IS NULL AND name = 'Transportation' AND type = 'expense');
 
 INSERT INTO categories (user_id, name, type, is_default)
 SELECT NULL, 'Entertainment', 'expense', 1

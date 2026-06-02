@@ -115,7 +115,7 @@ class Database
             ['Side-job', 'income'],
             ['Food', 'expense'],
             ['Bills', 'expense'],
-            ['Transportations', 'expense'],
+            ['Transportation', 'expense'],
             ['Entertainment', 'expense'],
         ];
 
