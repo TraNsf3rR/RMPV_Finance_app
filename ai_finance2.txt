@@ -1,0 +1,45 @@
+1
+make a simple finance tracker app that uses php, html, MySQL, CSS, JavaScript, chart.js
+the project structure should be mvc with proper routes that are in routes.php, data is saved on database
+the project will run through php -S localhost:8080 -t public
+use simple design but it should be dark
+the fetures should be:
+- Register and login
+- Dashboard with:
+    - Total balance (income - expenses)
+    - Monthly income
+    - Monthly expenses
+- Transaction management:
+    - Add, edit, delete
+    - Category assignment
+- Category management:
+    - Separate income and expense category management
+    - Add custom categories per type
+    - Edit/delete custom categories
+    - Built-in income categories: Work, Freelance, Side-job
+    - Built-in expense categories: Food, Bills, Transportations, Entertainment
+- Charts and reports:
+    - Pie chart for expense categories
+    - Monthly expense line chart
+- Search and filters:
+    - Filter by date range
+    - Filter by category
+    - Filter by type
+    - Search by description/category text
+
+2
+make database automatic 
+
+
+3
+for the already added expanses/income categories add also the options to edit/delete and remove the name built-in
+error messages should be a message above or below input field not html required 
+put in all input fields htmlspecchars and trim
+in register and forgot password add password requirement minimum 8 characters, 1 uppercase, 1 lower case, 1 number, 1 special character and it can visually be seen
+in login page add forgot password so it can be changed
+
+4
+in dashboard add option to select a different month or year so i can see that months charts
+
+5
+in dashboard page in search add more years 
