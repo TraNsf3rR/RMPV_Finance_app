@@ -1,10 +1,20 @@
 <?php
 
 use App\Core\Auth;
+use App\Models\Transaction;
 
 $user = Auth::user();
 $flash = $_SESSION['flash'] ?? null;
 $transactionsNavPath = sanitize_return_path($transactionsNavPath ?? '/transactions', '/transactions');
+
+// Calculate total balance for all transactions
+$totalBalance = 0;
+if ($user) {
+    $transactionModel = new Transaction();
+    $summary = $transactionModel->getDashboardSummary((int) $user['id'], []);
+    $totalBalance = $summary['total_balance'] ?? 0;
+}
+
 unset($_SESSION['flash']);
 ?>
 <!DOCTYPE html>
@@ -29,6 +39,10 @@ unset($_SESSION['flash']);
                     <a href="<?= url($transactionsNavPath) ?>">Transactions</a>
                     <a href="<?= url('/categories') ?>">Categories</a>
                 </nav>
+                <div class="balance-display <?= $totalBalance >= 0 ? 'text-income' : 'text-expense' ?>">
+                    <span>Total Balance:</span>
+                    <strong><?= $totalBalance >= 0 ? '' : '-' ?>$<?= number_format(abs($totalBalance), 2) ?></strong>
+                </div>
                 <div class="user-block">
                     <span><?= e($user['name']) ?></span>
                     <form method="POST" action="<?= url('/logout') ?>">

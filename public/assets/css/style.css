@@ -101,6 +101,26 @@ body {
     gap: 10px;
 }
 
+.balance-display {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    background: rgba(17, 25, 34, 0.5);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 0.95rem;
+}
+
+.balance-display span {
+    color: var(--muted);
+}
+
+.balance-display strong {
+    font-size: 1.1rem;
+    font-weight: 700;
+}
+
 .content {
     margin-top: 18px;
     display: grid;
