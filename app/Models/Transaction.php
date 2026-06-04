@@ -228,6 +228,50 @@ class Transaction
         return $result;
     }
 
+    public function getMonthlyIncomeLineData(int $userId, array $period): array
+    {
+        $selected = new \DateTime(sprintf('%04d-%02d-01', (int) ($period['year'] ?? date('Y')), (int) ($period['month'] ?? date('n'))));
+        $windowStart = (clone $selected)->modify('-11 months');
+        $windowEnd = (clone $selected)->modify('last day of this month');
+
+        $stmt = Database::connection()->prepare(
+            'SELECT DATE_FORMAT(transaction_date, "%Y-%m") AS ym, COALESCE(SUM(amount), 0) AS total
+             FROM transactions
+             WHERE user_id = :user_id
+               AND type = "income"
+               AND transaction_date >= :window_start
+               AND transaction_date <= :window_end
+             GROUP BY ym
+             ORDER BY ym ASC'
+        );
+
+        $stmt->execute([
+            'user_id' => $userId,
+            'window_start' => $windowStart->format('Y-m-01'),
+            'window_end' => $windowEnd->format('Y-m-d'),
+        ]);
+        $rows = $stmt->fetchAll();
+
+        $indexed = [];
+        foreach ($rows as $row) {
+            $indexed[$row['ym']] = (float) $row['total'];
+        }
+
+        $result = [];
+        $current = clone $windowStart;
+
+        for ($i = 0; $i < 12; $i++) {
+            $key = $current->format('Y-m');
+            $result[] = [
+                'month' => $current->format('M Y'),
+                'total' => $indexed[$key] ?? 0,
+            ];
+            $current->modify('+1 month');
+        }
+
+        return $result;
+    }
+
     public function getAvailableYears(int $userId): array
     {
         $stmt = Database::connection()->prepare(
@@ -243,7 +287,7 @@ class Transaction
         return array_map(static fn (array $row): int => (int) $row['year'], $rows);
     }
 
-    public function recent(int $userId, int $limit = 6): array
+    public function recent(int $userId, int $limit = 10): array
     {
         $stmt = Database::connection()->prepare(
             'SELECT t.*, c.name AS category_name

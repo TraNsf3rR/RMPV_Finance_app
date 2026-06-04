@@ -45,14 +45,16 @@ class DashboardController extends Controller
 
         $summary = $transactionModel->getDashboardSummary($userId, $period);
         $pieData = $transactionModel->getExpenseCategoryPieData($userId, $period);
-        $lineData = $transactionModel->getMonthlyExpenseLineData($userId, $period);
+        $lineExpenseData = $transactionModel->getMonthlyExpenseLineData($userId, $period);
+        $lineIncomeData = $transactionModel->getMonthlyIncomeLineData($userId, $period);
         $recent = $transactionModel->recent($userId);
 
         $this->view('dashboard/index', [
             'title' => 'Dashboard',
             'summary' => $summary,
             'pieData' => $pieData,
-            'lineData' => $lineData,
+            'lineExpenseData' => $lineExpenseData,
+            'lineIncomeData' => $lineIncomeData,
             'recent' => $recent,
             'selectedPeriod' => $period,
             'availableYears' => $availableYears,

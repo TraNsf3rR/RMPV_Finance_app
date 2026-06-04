@@ -1,5 +1,5 @@
 (function () {
-    const data = window.dashboardData || { pie: { labels: [], values: [] }, line: { labels: [], values: [] } };
+    const data = window.dashboardData || { pie: { labels: [], values: [] }, line: { labels: [], income: [], expense: [] } };
 
     const pieCtx = document.getElementById('expensePie');
     if (pieCtx) {
@@ -24,20 +24,30 @@
         });
     }
 
-    const lineCtx = document.getElementById('expenseLine');
+    const lineCtx = document.getElementById('incomeExpenseLine');
     if (lineCtx) {
         new Chart(lineCtx, {
             type: 'line',
             data: {
                 labels: data.line.labels,
-                datasets: [{
-                    label: 'Expense',
-                    data: data.line.values,
-                    borderColor: '#ff8a65',
-                    backgroundColor: 'rgba(255, 138, 101, 0.2)',
-                    fill: true,
-                    tension: 0.35,
-                }],
+                datasets: [
+                    {
+                        label: 'Expense',
+                        data: data.line.expense,
+                        borderColor: '#ff8a65',
+                        backgroundColor: 'rgba(255, 138, 101, 0.2)',
+                        fill: true,
+                        tension: 0.35,
+                    },
+                    {
+                        label: 'Income',
+                        data: data.line.income,
+                        borderColor: '#29c4a9',
+                        backgroundColor: 'rgba(41, 196, 169, 0.2)',
+                        fill: true,
+                        tension: 0.35,
+                    }
+                ],
             },
             options: {
                 scales: {

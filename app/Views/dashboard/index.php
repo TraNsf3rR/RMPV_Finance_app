@@ -1,8 +1,9 @@
 <?php
 $pieLabels = array_map(static fn (array $item): string => $item['name'], $pieData);
 $pieValues = array_map(static fn (array $item): float => (float) $item['total'], $pieData);
-$lineLabels = array_map(static fn (array $item): string => $item['month'], $lineData);
-$lineValues = array_map(static fn (array $item): float => (float) $item['total'], $lineData);
+$lineLabels = array_map(static fn (array $item): string => $item['month'], $lineExpenseData);
+$lineExpenseValues = array_map(static fn (array $item): float => (float) $item['total'], $lineExpenseData);
+$lineIncomeValues = array_map(static fn (array $item): float => (float) $item['total'], $lineIncomeData);
 $selectedMonth = (int) ($selectedPeriod['month'] ?? date('n'));
 $selectedYear = (int) ($selectedPeriod['year'] ?? date('Y'));
 $selectedMonthLabel = DateTime::createFromFormat('!m', (string) $selectedMonth)?->format('F') ?? date('F');
@@ -82,8 +83,8 @@ $months = [
     </article>
 
     <article class="card">
-        <h2>Monthly Expenses (12 Months Through <?= e($selectedMonthLabel . ' ' . (string) $selectedYear) ?>)</h2>
-        <canvas id="expenseLine"></canvas>
+        <h2>Monthly Incomes & Expenses (12 Months Through <?= e($selectedMonthLabel . ' ' . (string) $selectedYear) ?>)</h2>
+        <canvas id="incomeExpenseLine"></canvas>
     </article>
 </section>
 
@@ -132,7 +133,8 @@ window.dashboardData = {
     },
     line: {
         labels: <?= json_encode($lineLabels, JSON_THROW_ON_ERROR) ?>,
-        values: <?= json_encode($lineValues, JSON_THROW_ON_ERROR) ?>
+        income: <?= json_encode($lineIncomeValues, JSON_THROW_ON_ERROR) ?>,
+        expense: <?= json_encode($lineExpenseValues, JSON_THROW_ON_ERROR) ?>
     }
 };
 </script>
