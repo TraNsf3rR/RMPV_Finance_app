@@ -52,7 +52,7 @@ $backTo = sanitize_return_path($backTo ?? '/transactions');
         <?php endif; ?>
 
         <label>Description</label>
-        <textarea name="description" rows="4" placeholder="Optional note"><?= old_text('description', $transaction['description'] ?? '') ?></textarea>
+        <input name="description" placeholder="Optional note" value="<?= old_text('description', $transaction['description'] ?? '') ?>">
 
         <button type="submit" class="btn btn-primary"><?= $isEdit ? 'Update' : 'Create' ?></button>
     </form>
