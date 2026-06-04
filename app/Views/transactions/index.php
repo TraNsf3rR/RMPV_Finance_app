@@ -64,18 +64,18 @@
     <article class="stat-card">
         <h3>Balance</h3>
         <p class="stat-value <?= $totalBalance >= 0 ? 'text-income' : 'text-expense' ?>">
-            $<?= number_format($totalBalance, 2) ?>
+            €<?= number_format($totalBalance, 2) ?>
         </p>
     </article>
 
     <article class="stat-card">
         <h3>Income</h3>
-        <p class="stat-value text-income">$<?= number_format($totalIncome, 2) ?></p>
+        <p class="stat-value text-income">€<?= number_format($totalIncome, 2) ?></p>
     </article>
 
     <article class="stat-card">
         <h3>Expenses</h3>
-        <p class="stat-value text-expense">$<?= number_format($totalExpense, 2) ?></p>
+        <p class="stat-value text-expense">€<?= number_format($totalExpense, 2) ?></p>
     </article>
 </section>
 
@@ -103,7 +103,7 @@
                         <td><?= e($item['category_name']) ?></td>
                         <td><?= e($item['description'] ?: '-') ?></td>
                         <td class="<?= $item['type'] === 'income' ? 'text-income' : 'text-expense' ?>">
-                            <?= $item['type'] === 'income' ? '+' : '-' ?>$<?= number_format((float) $item['amount'], 2) ?>
+                            <?= $item['type'] === 'income' ? '+' : '-' ?>€<?= number_format((float) $item['amount'], 2) ?>
                         </td>
                         <td class="actions-cell">
                             <a class="btn" href="<?= url('/transactions/edit/' . (int) $item['id'] . '?back_to=' . rawurlencode($backTo)) ?>">Edit</a>

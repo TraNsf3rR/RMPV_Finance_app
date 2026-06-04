@@ -61,18 +61,18 @@ $months = [
     <article class="stat-card">
         <h3>Total Balance</h3>
         <p class="stat-value <?= $summary['total_balance'] >= 0 ? 'text-income' : 'text-expense' ?>">
-            $<?= number_format($summary['total_balance'], 2) ?>
+            €<?= number_format($summary['total_balance'], 2) ?>
         </p>
     </article>
 
     <article class="stat-card">
         <h3><?= e($selectedMonthLabel) ?> Income</h3>
-        <p class="stat-value text-income">$<?= number_format($summary['monthly_income'], 2) ?></p>
+        <p class="stat-value text-income">€<?= number_format($summary['monthly_income'], 2) ?></p>
     </article>
 
     <article class="stat-card">
         <h3><?= e($selectedMonthLabel) ?> Expenses</h3>
-        <p class="stat-value text-expense">$<?= number_format($summary['monthly_expense'], 2) ?></p>
+        <p class="stat-value text-expense">€<?= number_format($summary['monthly_expense'], 2) ?></p>
     </article>
 </section>
 
@@ -115,7 +115,7 @@ $months = [
                         <td><?= e($item['category_name']) ?></td>
                         <td><?= e($item['description'] ?: '-') ?></td>
                         <td class="<?= $item['type'] === 'income' ? 'text-income' : 'text-expense' ?>">
-                            <?= $item['type'] === 'income' ? '+' : '-' ?>$<?= number_format((float) $item['amount'], 2) ?>
+                            <?= $item['type'] === 'income' ? '+' : '-' ?>€<?= number_format((float) $item['amount'], 2) ?>
                         </td>
                     </tr>
                 <?php endforeach; ?>

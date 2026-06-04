@@ -41,7 +41,7 @@ unset($_SESSION['flash']);
                 </nav>
                 <div class="balance-display <?= $totalBalance >= 0 ? 'text-income' : 'text-expense' ?>">
                     <span>Total Balance:</span>
-                    <strong><?= $totalBalance >= 0 ? '' : '-' ?>$<?= number_format(abs($totalBalance), 2) ?></strong>
+                    <strong><?= $totalBalance >= 0 ? '' : '-' ?>€<?= number_format(abs($totalBalance), 2) ?></strong>
                 </div>
                 <div class="user-block">
                     <span><?= e($user['name']) ?></span>
