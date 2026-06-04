@@ -32,12 +32,27 @@ class TransactionController extends Controller
         $transactions = (new Transaction())->listByUserWithFilters($userId, $filters);
         $categories = (new Category())->allForUser($userId);
 
+        // Calculate totals for filtered transactions
+        $totalIncome = 0;
+        $totalExpense = 0;
+        foreach ($transactions as $transaction) {
+            if ($transaction['type'] === 'income') {
+                $totalIncome += (float) $transaction['amount'];
+            } else {
+                $totalExpense += (float) $transaction['amount'];
+            }
+        }
+        $totalBalance = $totalIncome - $totalExpense;
+
         $this->view('transactions/index', [
             'title' => 'Transactions',
             'transactions' => $transactions,
             'categories' => $categories,
             'filters' => $filters,
             'backTo' => $backTo,
+            'totalIncome' => $totalIncome,
+            'totalExpense' => $totalExpense,
+            'totalBalance' => $totalBalance,
         ]);
     }
 

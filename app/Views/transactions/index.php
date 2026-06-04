@@ -60,6 +60,25 @@
     </form>
 </section>
 
+<section class="stats-grid">
+    <article class="stat-card">
+        <h3>Balance</h3>
+        <p class="stat-value <?= $totalBalance >= 0 ? 'text-income' : 'text-expense' ?>">
+            $<?= number_format($totalBalance, 2) ?>
+        </p>
+    </article>
+
+    <article class="stat-card">
+        <h3>Income</h3>
+        <p class="stat-value text-income">$<?= number_format($totalIncome, 2) ?></p>
+    </article>
+
+    <article class="stat-card">
+        <h3>Expenses</h3>
+        <p class="stat-value text-expense">$<?= number_format($totalExpense, 2) ?></p>
+    </article>
+</section>
+
 <section class="card">
     <div class="table-wrap">
         <table>
