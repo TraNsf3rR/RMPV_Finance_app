@@ -1,7 +1,6 @@
 <section class="page-head">
     <div>
         <h1>Dashboard</h1>
-        <p class="muted">Viewing data for <?= e($selectedMonthLabel . ' ' . (string) $selectedYear) ?></p>
     </div>
     <div class="page-head-actions">
         <form class="dashboard-period-form" method="GET" action="<?= url('/dashboard') ?>">

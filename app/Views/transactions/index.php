@@ -3,9 +3,6 @@
 <section class="page-head">
     <div>
         <h1>Transactions</h1>
-        <?php if ($backTo !== '/dashboard'): ?>
-            <p class="muted">Opened from <?= e($backTo) ?></p>
-        <?php endif; ?>
     </div>
     <div class="page-head-actions">
         <a class="btn" href="<?= url($backTo) ?>">Back</a>

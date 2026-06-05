@@ -173,6 +173,14 @@ h1, h2, h3 {
     margin: 0;
 }
 
+h1 {
+    padding-left: 20px;
+}
+
+h2 {
+    padding-bottom: 10px;
+}
+
 .card,
 .stat-card {
     background: rgba(17, 25, 34, 0.92);
