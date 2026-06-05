@@ -15,6 +15,16 @@
 
 <section class="card">
     <h2>Search & Filters</h2>
+    
+    <div class="period-filters">
+        <button type="button" class="btn" onclick="filterByPeriod('today')">Today</button>
+        <button type="button" class="btn" onclick="filterByPeriod('week')">Week</button>
+        <button type="button" class="btn" onclick="filterByPeriod('month')">Month</button>
+        <button type="button" class="btn" onclick="filterByPeriod('3months')">3 Months</button>
+        <button type="button" class="btn" onclick="filterByPeriod('year')">Year</button>
+        <button type="button" class="btn" onclick="filterByPeriod('all')">All</button>
+    </div>
+
     <form class="filter-grid" method="GET" action="<?= url('/transactions') ?>">
         <input type="hidden" name="back_to" value="<?= e($backTo) ?>">
         <div>
@@ -119,3 +129,5 @@
         </table>
     </div>
 </section>
+
+<script src="/assets/js/transactions-filter.js"></script>
