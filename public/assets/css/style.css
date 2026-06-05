@@ -414,11 +414,18 @@ label {
 }
 
 .period-filters {
-    margin-bottom: 20px;
+    margin-top: 10px;
+    margin-bottom: 10px;
     display: flex;
     gap: 8px;
     flex-wrap: wrap;
     justify-content: center;
+    width: 100%;
+}
+
+.period-filters .btn {
+    flex: 1;
+    min-width: 120px;
 }
 
 .form-card {
