@@ -1,7 +1,6 @@
 <?php
 
 use App\Core\Auth;
-use App\Models\Transaction;
 
 $user = Auth::user();
 $flash = $_SESSION['flash'] ?? null;
@@ -10,9 +9,7 @@ $transactionsNavPath = sanitize_return_path($transactionsNavPath ?? '/transactio
 // Calculate total balance for all transactions
 $totalBalance = 0;
 if ($user) {
-    $transactionModel = new Transaction();
-    $summary = $transactionModel->getDashboardSummary((int) $user['id'], []);
-    $totalBalance = $summary['total_balance'] ?? 0;
+    $totalBalance = get_user_total_balance((int) $user['id']);
 }
 
 unset($_SESSION['flash']);

@@ -1,29 +1,3 @@
-<?php
-$pieLabels = array_map(static fn (array $item): string => $item['name'], $pieData);
-$pieValues = array_map(static fn (array $item): float => (float) $item['total'], $pieData);
-$lineLabels = array_map(static fn (array $item): string => $item['month'], $lineExpenseData);
-$lineExpenseValues = array_map(static fn (array $item): float => (float) $item['total'], $lineExpenseData);
-$lineIncomeValues = array_map(static fn (array $item): float => (float) $item['total'], $lineIncomeData);
-$selectedMonth = (int) ($selectedPeriod['month'] ?? date('n'));
-$selectedYear = (int) ($selectedPeriod['year'] ?? date('Y'));
-$selectedMonthLabel = DateTime::createFromFormat('!m', (string) $selectedMonth)?->format('F') ?? date('F');
-$dashboardReturnPath = '/dashboard?month=' . $selectedMonth . '&year=' . $selectedYear;
-$months = [
-    1 => 'January',
-    2 => 'February',
-    3 => 'March',
-    4 => 'April',
-    5 => 'May',
-    6 => 'June',
-    7 => 'July',
-    8 => 'August',
-    9 => 'September',
-    10 => 'October',
-    11 => 'November',
-    12 => 'December',
-];
-?>
-
 <section class="page-head">
     <div>
         <h1>Dashboard</h1>

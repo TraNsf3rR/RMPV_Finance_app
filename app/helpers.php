@@ -99,3 +99,10 @@ function sanitize_return_path(?string $path, string $default = '/transactions'):
 
     return $routePath . $query;
 }
+
+function get_user_total_balance(int $userId): float
+{
+    $transactionModel = new \App\Models\Transaction();
+    $summary = $transactionModel->getDashboardSummary($userId, []);
+    return (float) ($summary['total_balance'] ?? 0);
+}

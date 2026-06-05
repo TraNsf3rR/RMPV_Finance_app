@@ -71,6 +71,9 @@ class TransactionController extends Controller
         $this->view('transactions/form', [
             'title' => 'Add Transaction',
             'transaction' => null,
+            'isEdit' => false,
+            'selectedType' => 'expense',
+            'selectedCategory' => 0,
             'categories' => $categories,
             'action' => '/transactions/create',
             'backTo' => $backTo,
@@ -116,9 +119,15 @@ class TransactionController extends Controller
         $categories = (new Category())->allForUser($userId);
         $backTo = \sanitize_return_path($_GET['back_to'] ?? null, '/transactions');
 
+        $selectedType = trim((string) old('type', $transaction['type']));
+        $selectedCategory = (int) old('category_id', (int) $transaction['category_id']);
+
         $this->view('transactions/form', [
             'title' => 'Edit Transaction',
             'transaction' => $transaction,
+            'isEdit' => true,
+            'selectedType' => $selectedType,
+            'selectedCategory' => $selectedCategory,
             'categories' => $categories,
             'action' => '/transactions/edit/' . (int) $id,
             'backTo' => $backTo,

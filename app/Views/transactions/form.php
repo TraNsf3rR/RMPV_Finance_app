@@ -1,10 +1,3 @@
-<?php
-$isEdit = $transaction !== null;
-$selectedType = trim((string) old('type', $isEdit ? $transaction['type'] : 'expense'));
-$selectedCategory = (int) old('category_id', $isEdit ? (int) $transaction['category_id'] : 0);
-$backTo = sanitize_return_path($backTo ?? '/transactions');
-?>
-
 <section class="page-head">
     <h1><?= $isEdit ? 'Edit Transaction' : 'Add Transaction' ?></h1>
     <a class="btn" href="<?= url($backTo) ?>">Back</a>

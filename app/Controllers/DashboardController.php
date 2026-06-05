@@ -10,6 +10,21 @@ use App\Models\Transaction;
 
 class DashboardController extends Controller
 {
+    private const MONTHS = [
+        1 => 'January',
+        2 => 'February',
+        3 => 'March',
+        4 => 'April',
+        5 => 'May',
+        6 => 'June',
+        7 => 'July',
+        8 => 'August',
+        9 => 'September',
+        10 => 'October',
+        11 => 'November',
+        12 => 'December',
+    ];
+
     public function index(): void
     {
         Auth::requireAuth();
@@ -49,16 +64,33 @@ class DashboardController extends Controller
         $lineIncomeData = $transactionModel->getMonthlyIncomeLineData($userId, $period);
         $recent = $transactionModel->recent($userId);
 
+        // Transform chart data
+        $pieLabels = array_map(static fn (array $item): string => $item['name'], $pieData);
+        $pieValues = array_map(static fn (array $item): float => (float) $item['total'], $pieData);
+        $lineLabels = array_map(static fn (array $item): string => $item['month'], $lineExpenseData);
+        $lineExpenseValues = array_map(static fn (array $item): float => (float) $item['total'], $lineExpenseData);
+        $lineIncomeValues = array_map(static fn (array $item): float => (float) $item['total'], $lineIncomeData);
+
+        // Calculate display values
+        $selectedMonthLabel = self::MONTHS[$selectedMonth] ?? date('F');
+        $dashboardReturnPath = '/dashboard?month=' . $selectedMonth . '&year=' . $selectedYear;
+
         $this->view('dashboard/index', [
             'title' => 'Dashboard',
             'summary' => $summary,
-            'pieData' => $pieData,
-            'lineExpenseData' => $lineExpenseData,
-            'lineIncomeData' => $lineIncomeData,
+            'pieLabels' => $pieLabels,
+            'pieValues' => $pieValues,
+            'lineLabels' => $lineLabels,
+            'lineExpenseValues' => $lineExpenseValues,
+            'lineIncomeValues' => $lineIncomeValues,
             'recent' => $recent,
-            'selectedPeriod' => $period,
+            'selectedMonth' => $selectedMonth,
+            'selectedYear' => $selectedYear,
+            'selectedMonthLabel' => $selectedMonthLabel,
             'availableYears' => $availableYears,
-            'transactionsNavPath' => '/transactions?back_to=' . rawurlencode('/dashboard?month=' . $selectedMonth . '&year=' . $selectedYear),
+            'months' => self::MONTHS,
+            'dashboardReturnPath' => $dashboardReturnPath,
+            'transactionsNavPath' => '/transactions?back_to=' . rawurlencode($dashboardReturnPath),
         ]);
     }
 }
