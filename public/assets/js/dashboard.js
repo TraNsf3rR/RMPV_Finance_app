@@ -1,5 +1,6 @@
 (function () {
     const data = window.dashboardData || { pie: { labels: [], values: [] }, line: { labels: [], income: [], expense: [] } };
+    const formatEuro = (value) => `€${Number(value).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
     const pieCtx = document.getElementById('expensePie');
     if (pieCtx) {
@@ -18,6 +19,14 @@
                 plugins: {
                     legend: {
                         labels: { color: '#e7f0ff' },
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label(context) {
+                                const label = context.label || '';
+                                return `${label}: ${formatEuro(context.raw)}`;
+                            },
+                        },
                     },
                 },
             },
@@ -63,6 +72,13 @@
                 plugins: {
                     legend: {
                         labels: { color: '#e7f0ff' },
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label(context) {
+                                return `${context.dataset.label}: ${formatEuro(context.raw)}`;
+                            },
+                        },
                     },
                 },
             },

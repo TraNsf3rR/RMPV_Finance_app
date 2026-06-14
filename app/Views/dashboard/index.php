@@ -4,26 +4,22 @@
     </div>
     <div class="page-head-actions">
         <form class="dashboard-period-form" method="GET" action="<?= url('/dashboard') ?>">
-            <div>
-                <label for="dashboardMonth">Month</label>
-                <select id="dashboardMonth" name="month">
-                    <?php foreach ($months as $monthValue => $monthName): ?>
-                        <option value="<?= $monthValue ?>" <?= $selectedMonth === $monthValue ? 'selected' : '' ?>>
-                            <?= e($monthName) ?>
-                        </option>
-                    <?php endforeach; ?>
-                </select>
-            </div>
-            <div>
-                <label for="dashboardYear">Year</label>
-                <select id="dashboardYear" name="year">
-                    <?php foreach ($availableYears as $year): ?>
-                        <option value="<?= (int) $year ?>" <?= $selectedYear === (int) $year ? 'selected' : '' ?>>
-                            <?= (int) $year ?>
-                        </option>
-                    <?php endforeach; ?>
-                </select>
-            </div>
+            <label for="dashboardMonth">Month</label>
+            <select id="dashboardMonth" name="month">
+                <?php foreach ($availableMonths as $monthValue => $monthName): ?>
+                    <option value="<?= $monthValue ?>" <?= $selectedMonth === $monthValue ? 'selected' : '' ?>>
+                        <?= e($monthName) ?>
+                    </option>
+                <?php endforeach; ?>
+            </select>
+            <label for="dashboardYear">Year</label>
+            <select id="dashboardYear" name="year">
+                <?php foreach ($availableYears as $year): ?>
+                    <option value="<?= (int) $year ?>" <?= $selectedYear === (int) $year ? 'selected' : '' ?>>
+                        <?= (int) $year ?>
+                    </option>
+                <?php endforeach; ?>
+            </select>
             <button class="btn" type="submit">Apply</button>
         </form>
         <a class="btn btn-primary" href="<?= url('/transactions/create?back_to=' . rawurlencode($dashboardReturnPath)) ?>">+ Add Transaction</a>
@@ -56,7 +52,7 @@
     </article>
 
     <article class="card">
-        <h2>Monthly Incomes & Expenses (12 Months Through <?= e($selectedMonthLabel . ' ' . (string) $selectedYear) ?>)</h2>
+        <h2>Monthly Incomes & Expenses (Through <?= e($selectedMonthLabel . ' ' . (string) $selectedYear) ?>)</h2>
         <canvas id="incomeExpenseLine"></canvas>
     </article>
 </section>

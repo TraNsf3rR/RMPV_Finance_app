@@ -272,6 +272,164 @@ class Transaction
         return $result;
     }
 
+    public function getDailyExpenseLineData(int $userId, array $period): array
+    {
+        $selected = new \DateTime(sprintf('%04d-%02d-01', (int) ($period['year'] ?? date('Y')), (int) ($period['month'] ?? date('n'))));
+        $windowStart = (clone $selected)->format('Y-m-01');
+        $windowEnd = (clone $selected)->modify('last day of this month')->format('Y-m-d');
+        $daysInMonth = (int) $selected->format('t');
+
+        $stmt = Database::connection()->prepare(
+            'SELECT DAY(transaction_date) AS day_number, COALESCE(SUM(amount), 0) AS total
+             FROM transactions
+             WHERE user_id = :user_id
+               AND type = "expense"
+               AND transaction_date >= :window_start
+               AND transaction_date <= :window_end
+             GROUP BY day_number
+             ORDER BY day_number ASC'
+        );
+
+        $stmt->execute([
+            'user_id' => $userId,
+            'window_start' => $windowStart,
+            'window_end' => $windowEnd,
+        ]);
+        $rows = $stmt->fetchAll();
+
+        $indexed = [];
+        foreach ($rows as $row) {
+            $indexed[(int) $row['day_number']] = (float) $row['total'];
+        }
+
+        $result = [];
+        for ($day = 1; $day <= $daysInMonth; $day++) {
+            $result[] = [
+                'day' => (string) $day,
+                'total' => $indexed[$day] ?? 0,
+            ];
+        }
+
+        return $result;
+    }
+
+    public function getDailyIncomeLineData(int $userId, array $period): array
+    {
+        $selected = new \DateTime(sprintf('%04d-%02d-01', (int) ($period['year'] ?? date('Y')), (int) ($period['month'] ?? date('n'))));
+        $windowStart = (clone $selected)->format('Y-m-01');
+        $windowEnd = (clone $selected)->modify('last day of this month')->format('Y-m-d');
+        $daysInMonth = (int) $selected->format('t');
+
+        $stmt = Database::connection()->prepare(
+            'SELECT DAY(transaction_date) AS day_number, COALESCE(SUM(amount), 0) AS total
+             FROM transactions
+             WHERE user_id = :user_id
+               AND type = "income"
+               AND transaction_date >= :window_start
+               AND transaction_date <= :window_end
+             GROUP BY day_number
+             ORDER BY day_number ASC'
+        );
+
+        $stmt->execute([
+            'user_id' => $userId,
+            'window_start' => $windowStart,
+            'window_end' => $windowEnd,
+        ]);
+        $rows = $stmt->fetchAll();
+
+        $indexed = [];
+        foreach ($rows as $row) {
+            $indexed[(int) $row['day_number']] = (float) $row['total'];
+        }
+
+        $result = [];
+        for ($day = 1; $day <= $daysInMonth; $day++) {
+            $result[] = [
+                'day' => (string) $day,
+                'total' => $indexed[$day] ?? 0,
+            ];
+        }
+
+        return $result;
+    }
+
+    public function getWeeklyExpenseLineData(int $userId, array $period): array
+    {
+        return $this->getWeeklyLineData($userId, $period, 'expense');
+    }
+
+    public function getWeeklyIncomeLineData(int $userId, array $period): array
+    {
+        return $this->getWeeklyLineData($userId, $period, 'income');
+    }
+
+    private function getWeeklyLineData(int $userId, array $period, string $type): array
+    {
+        $selected = new \DateTime(sprintf('%04d-%02d-01', (int) ($period['year'] ?? date('Y')), (int) ($period['month'] ?? date('n'))));
+        $monthStart = clone $selected;
+        $monthEnd = (clone $selected)->modify('last day of this month');
+
+        $stmt = Database::connection()->prepare(
+            'SELECT DATE(transaction_date) AS transaction_day, COALESCE(SUM(amount), 0) AS total
+             FROM transactions
+             WHERE user_id = :user_id
+               AND type = :type
+               AND transaction_date >= :window_start
+               AND transaction_date <= :window_end
+             GROUP BY transaction_day
+             ORDER BY transaction_day ASC'
+        );
+
+        $stmt->execute([
+            'user_id' => $userId,
+            'type' => $type,
+            'window_start' => $monthStart->format('Y-m-d'),
+            'window_end' => $monthEnd->format('Y-m-d'),
+        ]);
+        $rows = $stmt->fetchAll();
+
+        $indexed = [];
+        foreach ($rows as $row) {
+            $indexed[$row['transaction_day']] = (float) $row['total'];
+        }
+
+        $result = [];
+        $cursor = clone $monthStart;
+
+        while ($cursor <= $monthEnd) {
+            $weekStart = clone $cursor;
+            if ((int) $weekStart->format('N') !== 1) {
+                $weekStart->modify('monday this week');
+            }
+
+            if ($weekStart < $monthStart) {
+                $weekStart = clone $monthStart;
+            }
+
+            $weekEnd = (clone $weekStart)->modify('sunday this week');
+            if ($weekEnd > $monthEnd) {
+                $weekEnd = clone $monthEnd;
+            }
+
+            $total = 0.0;
+            $dayCursor = clone $weekStart;
+            while ($dayCursor <= $weekEnd) {
+                $total += $indexed[$dayCursor->format('Y-m-d')] ?? 0.0;
+                $dayCursor->modify('+1 day');
+            }
+
+            $result[] = [
+                'week' => $weekStart->format('M j') . ' - ' . $weekEnd->format('M j'),
+                'total' => $total,
+            ];
+
+            $cursor = (clone $weekEnd)->modify('+1 day');
+        }
+
+        return $result;
+    }
+
     public function getAvailableYears(int $userId): array
     {
         $stmt = Database::connection()->prepare(
@@ -285,6 +443,47 @@ class Transaction
         $rows = $stmt->fetchAll();
 
         return array_map(static fn (array $row): int => (int) $row['year'], $rows);
+    }
+
+    public function getAvailableMonthsForYear(int $userId, int $year): array
+    {
+        $stmt = Database::connection()->prepare(
+            'SELECT DISTINCT MONTH(transaction_date) AS month
+             FROM transactions
+             WHERE user_id = :user_id
+               AND YEAR(transaction_date) = :year
+             ORDER BY month ASC'
+        );
+        $stmt->execute([
+            'user_id' => $userId,
+            'year' => $year,
+        ]);
+
+        $rows = $stmt->fetchAll();
+
+        return array_map(static fn (array $row): int => (int) $row['month'], $rows);
+    }
+
+    public function getTransactionDateBounds(int $userId): ?array
+    {
+        $stmt = Database::connection()->prepare(
+            'SELECT
+                MIN(transaction_date) AS min_date,
+                MAX(transaction_date) AS max_date
+             FROM transactions
+             WHERE user_id = :user_id'
+        );
+        $stmt->execute(['user_id' => $userId]);
+
+        $row = $stmt->fetch();
+        if (!$row || $row['min_date'] === null) {
+            return null;
+        }
+
+        return [
+            'min_date' => $row['min_date'],
+            'max_date' => $row['max_date'],
+        ];
     }
 
     public function recent(int $userId, int $limit = 10): array

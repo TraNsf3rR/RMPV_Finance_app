@@ -1,17 +1,3 @@
-e-mail:
-test@test.lv
-
-Password:
-123_Test
-
-TODO:
-
---General
-Ja nonullē datu bāzi, tad nav erroru un neizmet no sistēmas (paliek sessionID)
-
---Transactions
-
-
 # Finance Tracker (PHP MVC)
 
 Simple dark-themed finance tracker built with PHP, HTML, MySQL, CSS, JavaScript, and Chart.js.
