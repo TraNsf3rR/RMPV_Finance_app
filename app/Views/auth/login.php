@@ -1,20 +1,42 @@
+<?php
+$emailError = error('email');
+$passwordError = error('password');
+?>
+
 <section class="auth-wrap">
     <div class="card auth-card">
         <h1>Login</h1>
         <p class="muted">Manage your personal finances in one place.</p>
 
         <form method="POST" action="<?= url('/login') ?>" class="stack" novalidate>
-            <label>Email</label>
-            <input type="email" name="email" value="<?= old_text('email') ?>">
-            <?php if (error('email')): ?>
-                <p class="field-error"><?= e(error('email')) ?></p>
-            <?php endif; ?>
+            <div class="form-field">
+                <label for="loginEmail">Email</label>
+                <input
+                    id="loginEmail"
+                    type="email"
+                    name="email"
+                    autocomplete="email"
+                    value="<?= old_text('email') ?>"
+                    <?= $emailError ? 'aria-invalid="true" aria-describedby="loginEmailError"' : '' ?>
+                >
+                <?php if ($emailError): ?>
+                    <p id="loginEmailError" class="field-error" role="alert"><?= e($emailError) ?></p>
+                <?php endif; ?>
+            </div>
 
-            <label>Password</label>
-            <input type="password" name="password">
-            <?php if (error('password')): ?>
-                <p class="field-error"><?= e(error('password')) ?></p>
-            <?php endif; ?>
+            <div class="form-field">
+                <label for="loginPassword">Password</label>
+                <input
+                    id="loginPassword"
+                    type="password"
+                    name="password"
+                    autocomplete="current-password"
+                    <?= $passwordError ? 'aria-invalid="true" aria-describedby="loginPasswordError"' : '' ?>
+                >
+                <?php if ($passwordError): ?>
+                    <p id="loginPasswordError" class="field-error" role="alert"><?= e($passwordError) ?></p>
+                <?php endif; ?>
+            </div>
 
             <button type="submit" class="btn btn-primary">Sign In</button>
         </form>

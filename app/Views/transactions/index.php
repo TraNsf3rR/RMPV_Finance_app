@@ -25,18 +25,18 @@
     <form class="filter-grid" method="GET" action="<?= url('/transactions') ?>">
         <input type="hidden" name="back_to" value="<?= e($backTo) ?>">
         <div>
-            <label>From Date</label>
-            <input type="date" name="from_date" value="<?= e(trim((string) $filters['from_date'])) ?>">
+            <label for="fromDate">From Date</label>
+            <input id="fromDate" type="date" name="from_date" value="<?= e(trim((string) $filters['from_date'])) ?>">
         </div>
 
         <div>
-            <label>To Date</label>
-            <input type="date" name="to_date" value="<?= e(trim((string) $filters['to_date'])) ?>">
+            <label for="toDate">To Date</label>
+            <input id="toDate" type="date" name="to_date" value="<?= e(trim((string) $filters['to_date'])) ?>">
         </div>
 
         <div>
-            <label>Type</label>
-            <select name="type">
+            <label for="transactionType">Type</label>
+            <select id="transactionType" name="type">
                 <option value="">All</option>
                 <option value="income" <?= $filters['type'] === 'income' ? 'selected' : '' ?>>Income</option>
                 <option value="expense" <?= $filters['type'] === 'expense' ? 'selected' : '' ?>>Expense</option>
@@ -44,8 +44,8 @@
         </div>
 
         <div>
-            <label>Category</label>
-            <select name="category_id">
+            <label for="transactionCategory">Category</label>
+            <select id="transactionCategory" name="category_id">
                 <option value="">All</option>
                 <?php foreach ($categories as $category): ?>
                     <option value="<?= (int) $category['id'] ?>" <?= (string) $category['id'] === (string) $filters['category_id'] ? 'selected' : '' ?>>
@@ -56,8 +56,8 @@
         </div>
 
         <div>
-            <label>Search Text</label>
-            <input type="text" name="search" placeholder="Description or category" value="<?= e(trim((string) $filters['search'])) ?>">
+            <label for="transactionSearch">Search Text</label>
+            <input id="transactionSearch" type="text" name="search" placeholder="Description or category" value="<?= e(trim((string) $filters['search'])) ?>">
         </div>
 
         <div class="filter-actions">
@@ -88,35 +88,37 @@
 
 <section class="card">
     <div class="table-wrap">
-        <table>
+        <table class="transaction-table">
             <thead>
             <tr>
-                <th>Date</th>
-                <th>Type</th>
-                <th>Category</th>
-                <th>Description</th>
-                <th>Amount</th>
-                <th>Actions</th>
+                <th scope="col">Date</th>
+                <th scope="col">Type</th>
+                <th scope="col">Category</th>
+                <th scope="col">Description</th>
+                <th scope="col">Amount</th>
+                <th scope="col">Actions</th>
             </tr>
             </thead>
             <tbody>
             <?php if (empty($transactions)): ?>
-                <tr><td colspan="6" class="muted center">No matching transactions found.</td></tr>
+                <tr><td colspan="6" class="table-empty muted" role="status">No matching transactions found.</td></tr>
             <?php else: ?>
                 <?php foreach ($transactions as $item): ?>
                     <tr>
-                        <td><?= e($item['transaction_date']) ?></td>
+                        <td class="date-cell">
+                            <time datetime="<?= e($item['transaction_date']) ?>"><?= e($item['transaction_date']) ?></time>
+                        </td>
                         <td><span class="tag tag-<?= e($item['type']) ?>"><?= e(ucfirst($item['type'])) ?></span></td>
                         <td><?= e($item['category_name']) ?></td>
-                        <td><?= e($item['description'] ?: '-') ?></td>
-                        <td class="<?= $item['type'] === 'income' ? 'text-income' : 'text-expense' ?>">
+                        <td class="description-cell"><?= e($item['description'] ?: '-') ?></td>
+                        <td class="amount-cell <?= $item['type'] === 'income' ? 'text-income' : 'text-expense' ?>">
                             <?= $item['type'] === 'income' ? '+' : '-' ?>€<?= number_format((float) $item['amount'], 2) ?>
                         </td>
                         <td class="actions-cell">
-                            <a class="btn" href="<?= url('/transactions/edit/' . (int) $item['id'] . '?back_to=' . rawurlencode($backTo)) ?>">Edit</a>
+                            <a class="btn" href="<?= url('/transactions/edit/' . (int) $item['id'] . '?back_to=' . rawurlencode($backTo)) ?>" aria-label="Edit transaction: <?= e($item['description'] ?: $item['category_name']) ?>">Edit</a>
                             <form method="POST" action="<?= url('/transactions/delete/' . (int) $item['id']) ?>" onsubmit="return confirm('Delete this transaction?')">
                                 <input type="hidden" name="back_to" value="<?= e($backTo) ?>">
-                                <button class="btn btn-danger" type="submit">Delete</button>
+                                <button class="btn btn-danger" type="submit" aria-label="Delete transaction: <?= e($item['description'] ?: $item['category_name']) ?>">Delete</button>
                             </form>
                         </td>
                     </tr>

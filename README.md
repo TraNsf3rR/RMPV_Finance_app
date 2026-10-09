@@ -1,9 +1,10 @@
 # Finance Tracker (PHP MVC)
 
-Simple dark-themed finance tracker built with PHP, HTML, MySQL, CSS, JavaScript, and Chart.js.
+Simple PHP MVC finance tracker with a dark theme and a selectable light theme, built with PHP, HTML, MySQL, CSS, JavaScript, and Chart.js.
 
 ## Features
 
+- Dark/light theme toggle with the preference saved in the browser
 - Register and login
 - Dashboard:
   - Total balance (income - expenses)

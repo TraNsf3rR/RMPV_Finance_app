@@ -8,11 +8,11 @@
 
         <form class="inline-form" method="POST" action="<?= url('/categories/create') ?>" novalidate>
             <input type="hidden" name="type" value="income">
-            <input type="text" name="name" placeholder="Add income category" value="<?= old_text('create_income_name') ?>">
+            <input type="text" name="name" aria-label="New income category" placeholder="Add income category" value="<?= old_text('create_income_name') ?>">
             <button class="btn btn-primary" type="submit">Add</button>
         </form>
         <?php if (error('create_income_name')): ?>
-            <p class="field-error"><?= e(error('create_income_name')) ?></p>
+            <p class="field-error" role="alert"><?= e(error('create_income_name')) ?></p>
         <?php endif; ?>
 
         <div class="category-list">
@@ -20,19 +20,19 @@
                 <div class="category-item">
                     <?php if ($category['user_id'] !== null && (int) $category['is_default'] === 0): ?>
                         <form method="POST" action="<?= url('/categories/update/' . (int) $category['id']) ?>" class="inline-form wide" novalidate>
-                            <input type="text" name="name" value="<?= old_text('edit_name_' . (int) $category['id'], trim((string) $category['name'])) ?>">
+                            <input type="text" name="name" aria-label="Rename income category: <?= e($category['name']) ?>" value="<?= old_text('edit_name_' . (int) $category['id'], trim((string) $category['name'])) ?>">
                             <input type="hidden" name="type" value="income">
-                            <button class="btn" type="submit">Save</button>
+                            <button class="btn" type="submit" aria-label="Save income category: <?= e($category['name']) ?>">Save</button>
                         </form>
                         <form method="POST" action="<?= url('/categories/delete/' . (int) $category['id']) ?>" onsubmit="return confirm('Delete this category?')">
-                            <button class="btn btn-danger" type="submit">Delete</button>
+                            <button class="btn btn-danger" type="submit" aria-label="Delete income category: <?= e($category['name']) ?>">Delete</button>
                         </form>
                     <?php else: ?>
                         <span><?= e($category['name']) ?></span>
                     <?php endif; ?>
                 </div>
                 <?php if (error('edit_name_' . (int) $category['id'])): ?>
-                    <p class="field-error"><?= e(error('edit_name_' . (int) $category['id'])) ?></p>
+                    <p class="field-error" role="alert"><?= e(error('edit_name_' . (int) $category['id'])) ?></p>
                 <?php endif; ?>
             <?php endforeach; ?>
         </div>
@@ -43,11 +43,11 @@
 
         <form class="inline-form" method="POST" action="<?= url('/categories/create') ?>" novalidate>
             <input type="hidden" name="type" value="expense">
-            <input type="text" name="name" placeholder="Add expense category" value="<?= old_text('create_expense_name') ?>">
+            <input type="text" name="name" aria-label="New expense category" placeholder="Add expense category" value="<?= old_text('create_expense_name') ?>">
             <button class="btn btn-primary" type="submit">Add</button>
         </form>
         <?php if (error('create_expense_name')): ?>
-            <p class="field-error"><?= e(error('create_expense_name')) ?></p>
+            <p class="field-error" role="alert"><?= e(error('create_expense_name')) ?></p>
         <?php endif; ?>
 
         <div class="category-list">
@@ -55,19 +55,19 @@
                 <div class="category-item">
                     <?php if ($category['user_id'] !== null && (int) $category['is_default'] === 0): ?>
                         <form method="POST" action="<?= url('/categories/update/' . (int) $category['id']) ?>" class="inline-form wide" novalidate>
-                            <input type="text" name="name" value="<?= old_text('edit_name_' . (int) $category['id'], trim((string) $category['name'])) ?>">
+                            <input type="text" name="name" aria-label="Rename expense category: <?= e($category['name']) ?>" value="<?= old_text('edit_name_' . (int) $category['id'], trim((string) $category['name'])) ?>">
                             <input type="hidden" name="type" value="expense">
-                            <button class="btn" type="submit">Save</button>
+                            <button class="btn" type="submit" aria-label="Save expense category: <?= e($category['name']) ?>">Save</button>
                         </form>
                         <form method="POST" action="<?= url('/categories/delete/' . (int) $category['id']) ?>" onsubmit="return confirm('Delete this category?')">
-                            <button class="btn btn-danger" type="submit">Delete</button>
+                            <button class="btn btn-danger" type="submit" aria-label="Delete expense category: <?= e($category['name']) ?>">Delete</button>
                         </form>
                     <?php else: ?>
                         <span><?= e($category['name']) ?></span>
                     <?php endif; ?>
                 </div>
                 <?php if (error('edit_name_' . (int) $category['id'])): ?>
-                    <p class="field-error"><?= e(error('edit_name_' . (int) $category['id'])) ?></p>
+                    <p class="field-error" role="alert"><?= e(error('edit_name_' . (int) $category['id'])) ?></p>
                 <?php endif; ?>
             <?php endforeach; ?>
         </div>

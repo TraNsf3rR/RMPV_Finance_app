@@ -20,6 +20,7 @@ unset($_SESSION['flash']);
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= e(($title ?? 'Finance Tracker') . ' | ' . config('app_name', 'Finance Tracker')) ?></title>
+    <script src="/assets/js/theme.js"></script>
     <link rel="stylesheet" href="/assets/css/style.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
@@ -28,7 +29,15 @@ unset($_SESSION['flash']);
     <div class="bg-glow glow-2"></div>
     <div class="app-shell">
         <header class="topbar">
-            <a class="brand" href="<?= url('/dashboard') ?>">Finance Tracker</a>
+            <div class="topbar-brand">
+                <a class="brand" href="<?= url('/dashboard') ?>">Finance Tracker</a>
+                <button
+                    class="btn theme-toggle"
+                    type="button"
+                    data-theme-toggle
+                    aria-label="Switch to light theme"
+                >Light theme</button>
+            </div>
 
             <?php if ($user): ?>
                 <nav class="nav-links">
@@ -36,15 +45,17 @@ unset($_SESSION['flash']);
                     <a href="<?= url($transactionsNavPath) ?>">Transactions</a>
                     <a href="<?= url('/categories') ?>">Categories</a>
                 </nav>
-                <div class="balance-display <?= $totalBalance >= 0 ? 'text-income' : 'text-expense' ?>">
-                    <span>Total Balance:</span>
-                    <strong><?= $totalBalance >= 0 ? '' : '-' ?>€<?= number_format(abs($totalBalance), 2) ?></strong>
-                </div>
-                <div class="user-block">
-                    <span><?= e($user['name']) ?></span>
-                    <form method="POST" action="<?= url('/logout') ?>">
-                        <button class="btn btn-danger" type="submit">Logout</button>
-                    </form>
+                <div class="topbar-account">
+                    <div class="balance-display <?= $totalBalance >= 0 ? 'text-income' : 'text-expense' ?>">
+                        <span>Total Balance:</span>
+                        <strong><?= $totalBalance >= 0 ? '' : '-' ?>€<?= number_format(abs($totalBalance), 2) ?></strong>
+                    </div>
+                    <div class="user-block">
+                        <span><?= e($user['name']) ?></span>
+                        <form method="POST" action="<?= url('/logout') ?>">
+                            <button class="btn btn-danger" type="submit">Logout</button>
+                        </form>
+                    </div>
                 </div>
             <?php endif; ?>
         </header>

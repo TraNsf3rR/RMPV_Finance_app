@@ -46,14 +46,26 @@
 </section>
 
 <section class="charts-grid">
-    <article class="card">
+    <article class="card chart-card">
         <h2>Expense Categories (<?= e($selectedMonthLabel . ' ' . (string) $selectedYear) ?>)</h2>
-        <canvas id="expensePie"></canvas>
+        <?php if (empty($pieValues)): ?>
+            <p class="chart-empty muted" role="status">No expense data for this month.</p>
+        <?php else: ?>
+            <div class="chart-area">
+                <canvas id="expensePie"></canvas>
+            </div>
+        <?php endif; ?>
     </article>
 
-    <article class="card">
+    <article class="card chart-card">
         <h2>Monthly Incomes & Expenses (Through <?= e($selectedMonthLabel . ' ' . (string) $selectedYear) ?>)</h2>
-        <canvas id="incomeExpenseLine"></canvas>
+        <?php if (!array_filter(array_merge($lineIncomeValues, $lineExpenseValues))): ?>
+            <p class="chart-empty muted" role="status">No income or expense activity for this month.</p>
+        <?php else: ?>
+            <div class="chart-area">
+                <canvas id="incomeExpenseLine"></canvas>
+            </div>
+        <?php endif; ?>
     </article>
 </section>
 
@@ -63,27 +75,29 @@
         <a class="btn" href="<?= url('/transactions?back_to=' . rawurlencode($dashboardReturnPath)) ?>">View All</a>
     </div>
     <div class="table-wrap">
-        <table>
+        <table class="recent-table">
             <thead>
             <tr>
-                <th>Date</th>
-                <th>Type</th>
-                <th>Category</th>
-                <th>Description</th>
-                <th>Amount</th>
+                <th scope="col">Date</th>
+                <th scope="col">Type</th>
+                <th scope="col">Category</th>
+                <th scope="col">Description</th>
+                <th scope="col">Amount</th>
             </tr>
             </thead>
             <tbody>
             <?php if (empty($recent)): ?>
-                <tr><td colspan="5" class="muted center">No transactions yet.</td></tr>
+                <tr><td colspan="5" class="table-empty muted" role="status">No transactions yet.</td></tr>
             <?php else: ?>
                 <?php foreach ($recent as $item): ?>
                     <tr>
-                        <td><?= e($item['transaction_date']) ?></td>
+                        <td class="date-cell">
+                            <time datetime="<?= e($item['transaction_date']) ?>"><?= e($item['transaction_date']) ?></time>
+                        </td>
                         <td><span class="tag tag-<?= e($item['type']) ?>"><?= e(ucfirst($item['type'])) ?></span></td>
                         <td><?= e($item['category_name']) ?></td>
-                        <td><?= e($item['description'] ?: '-') ?></td>
-                        <td class="<?= $item['type'] === 'income' ? 'text-income' : 'text-expense' ?>">
+                        <td class="description-cell"><?= e($item['description'] ?: '-') ?></td>
+                        <td class="amount-cell <?= $item['type'] === 'income' ? 'text-income' : 'text-expense' ?>">
                             <?= $item['type'] === 'income' ? '+' : '-' ?>€<?= number_format((float) $item['amount'], 2) ?>
                         </td>
                     </tr>

@@ -1,3 +1,8 @@
+<?php
+$passwordError = error('password');
+$confirmationError = error('password_confirmation');
+?>
+
 <section class="auth-wrap">
     <div class="card auth-card">
         <h1>Choose a New Password</h1>
@@ -6,24 +11,42 @@
         <form method="POST" action="<?= url('/reset-password') ?>" class="stack" novalidate>
             <input type="hidden" name="token" value="<?= e($token) ?>">
 
-            <label>New Password</label>
-            <input type="password" name="password" data-password-rules="reset-password-rules">
-            <ul id="reset-password-rules" class="password-rules">
-                <li data-rule="length">At least 8 characters</li>
-                <li data-rule="upper">At least 1 uppercase letter</li>
-                <li data-rule="lower">At least 1 lowercase letter</li>
-                <li data-rule="number">At least 1 number</li>
-                <li data-rule="special">At least 1 special character</li>
-            </ul>
-            <?php if (error('password')): ?>
-                <p class="field-error"><?= e(error('password')) ?></p>
-            <?php endif; ?>
+            <div class="form-field">
+                <label for="resetPassword">New Password</label>
+                <input
+                    id="resetPassword"
+                    type="password"
+                    name="password"
+                    autocomplete="new-password"
+                    data-password-rules="reset-password-rules"
+                    aria-describedby="reset-password-rules<?= $passwordError ? ' resetPasswordError' : '' ?>"
+                    <?= $passwordError ? 'aria-invalid="true"' : '' ?>
+                >
+                <ul id="reset-password-rules" class="password-rules">
+                    <li data-rule="length">At least 8 characters</li>
+                    <li data-rule="upper">At least 1 uppercase letter</li>
+                    <li data-rule="lower">At least 1 lowercase letter</li>
+                    <li data-rule="number">At least 1 number</li>
+                    <li data-rule="special">At least 1 special character</li>
+                </ul>
+                <?php if ($passwordError): ?>
+                    <p id="resetPasswordError" class="field-error" role="alert"><?= e($passwordError) ?></p>
+                <?php endif; ?>
+            </div>
 
-            <label>Confirm New Password</label>
-            <input type="password" name="password_confirmation">
-            <?php if (error('password_confirmation')): ?>
-                <p class="field-error"><?= e(error('password_confirmation')) ?></p>
-            <?php endif; ?>
+            <div class="form-field">
+                <label for="resetPasswordConfirmation">Confirm New Password</label>
+                <input
+                    id="resetPasswordConfirmation"
+                    type="password"
+                    name="password_confirmation"
+                    autocomplete="new-password"
+                    <?= $confirmationError ? 'aria-invalid="true" aria-describedby="resetPasswordConfirmationError"' : '' ?>
+                >
+                <?php if ($confirmationError): ?>
+                    <p id="resetPasswordConfirmationError" class="field-error" role="alert"><?= e($confirmationError) ?></p>
+                <?php endif; ?>
+            </div>
 
             <button type="submit" class="btn btn-primary">Update Password</button>
         </form>
