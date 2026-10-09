@@ -1,6 +1,6 @@
 USE finance_tracker;
 
--- 500 transactions for user_id 1.
+-- 100 transactions for user_id 1.
 -- Requires that user_id 1 already exists and that the default categories are present.
 INSERT INTO transactions (user_id, category_id, type, amount, description, transaction_date)
 SELECT
@@ -63,7 +63,7 @@ SELECT
     END AS description,
     DATE_ADD(
         DATE_SUB(CURDATE(), INTERVAL 14 MONTH),
-        INTERVAL FLOOR(seq.n * DATEDIFF(CURDATE(), DATE_SUB(CURDATE(), INTERVAL 14 MONTH)) / 499) DAY
+        INTERVAL FLOOR(seq.n * DATEDIFF(CURDATE(), DATE_SUB(CURDATE(), INTERVAL 14 MONTH)) / 99) DAY
     ) AS transaction_date
 FROM (
     SELECT
@@ -81,4 +81,4 @@ FROM (
         UNION ALL SELECT 5 UNION ALL SELECT 6 UNION ALL SELECT 7 UNION ALL SELECT 8 UNION ALL SELECT 9
     ) AS d2
 ) AS seq
-WHERE seq.n < 500;
+WHERE seq.n < 100;
