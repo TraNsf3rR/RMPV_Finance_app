@@ -72,7 +72,8 @@ class Category
             'UPDATE categories
              SET name = :name, type = :type
              WHERE id = :id
-               AND (user_id IS NULL OR user_id = :user_id)'
+               AND user_id = :user_id
+               AND is_default = 0'
         );
 
         $stmt->execute([
@@ -87,6 +88,10 @@ class Category
 
     public function deleteCustom(int $userId, int $id): bool
     {
+        if ($this->findCustomById($userId, $id) === null) {
+            return false;
+        }
+
         $usageStmt = Database::connection()->prepare(
             'SELECT COUNT(*) FROM transactions WHERE category_id = :category_id'
         );
@@ -101,7 +106,8 @@ class Category
         $stmt = Database::connection()->prepare(
             'DELETE FROM categories
              WHERE id = :id
-               AND (user_id IS NULL OR user_id = :user_id)'
+               AND user_id = :user_id
+               AND is_default = 0'
         );
         $stmt->execute([
             'id' => $id,

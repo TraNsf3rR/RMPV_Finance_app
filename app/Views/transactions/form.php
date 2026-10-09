@@ -46,6 +46,9 @@
 
         <label>Description</label>
         <input name="description" placeholder="Optional note" value="<?= old_text('description', $transaction['description'] ?? '') ?>">
+        <?php if (error('description')): ?>
+            <p class="field-error"><?= e(error('description')) ?></p>
+        <?php endif; ?>
 
         <button type="submit" class="btn btn-primary"><?= $isEdit ? 'Update' : 'Create' ?></button>
     </form>

@@ -18,14 +18,18 @@
         <div class="category-list">
             <?php foreach ($incomeCategories as $category): ?>
                 <div class="category-item">
-                    <form method="POST" action="<?= url('/categories/update/' . (int) $category['id']) ?>" class="inline-form wide" novalidate>
-                        <input type="text" name="name" value="<?= old_text('edit_name_' . (int) $category['id'], trim((string) $category['name'])) ?>">
-                        <input type="hidden" name="type" value="income">
-                        <button class="btn" type="submit">Save</button>
-                    </form>
-                    <form method="POST" action="<?= url('/categories/delete/' . (int) $category['id']) ?>" onsubmit="return confirm('Delete this category?')">
-                        <button class="btn btn-danger" type="submit">Delete</button>
-                    </form>
+                    <?php if ($category['user_id'] !== null && (int) $category['is_default'] === 0): ?>
+                        <form method="POST" action="<?= url('/categories/update/' . (int) $category['id']) ?>" class="inline-form wide" novalidate>
+                            <input type="text" name="name" value="<?= old_text('edit_name_' . (int) $category['id'], trim((string) $category['name'])) ?>">
+                            <input type="hidden" name="type" value="income">
+                            <button class="btn" type="submit">Save</button>
+                        </form>
+                        <form method="POST" action="<?= url('/categories/delete/' . (int) $category['id']) ?>" onsubmit="return confirm('Delete this category?')">
+                            <button class="btn btn-danger" type="submit">Delete</button>
+                        </form>
+                    <?php else: ?>
+                        <span><?= e($category['name']) ?></span>
+                    <?php endif; ?>
                 </div>
                 <?php if (error('edit_name_' . (int) $category['id'])): ?>
                     <p class="field-error"><?= e(error('edit_name_' . (int) $category['id'])) ?></p>
@@ -49,14 +53,18 @@
         <div class="category-list">
             <?php foreach ($expenseCategories as $category): ?>
                 <div class="category-item">
-                    <form method="POST" action="<?= url('/categories/update/' . (int) $category['id']) ?>" class="inline-form wide" novalidate>
-                        <input type="text" name="name" value="<?= old_text('edit_name_' . (int) $category['id'], trim((string) $category['name'])) ?>">
-                        <input type="hidden" name="type" value="expense">
-                        <button class="btn" type="submit">Save</button>
-                    </form>
-                    <form method="POST" action="<?= url('/categories/delete/' . (int) $category['id']) ?>" onsubmit="return confirm('Delete this category?')">
-                        <button class="btn btn-danger" type="submit">Delete</button>
-                    </form>
+                    <?php if ($category['user_id'] !== null && (int) $category['is_default'] === 0): ?>
+                        <form method="POST" action="<?= url('/categories/update/' . (int) $category['id']) ?>" class="inline-form wide" novalidate>
+                            <input type="text" name="name" value="<?= old_text('edit_name_' . (int) $category['id'], trim((string) $category['name'])) ?>">
+                            <input type="hidden" name="type" value="expense">
+                            <button class="btn" type="submit">Save</button>
+                        </form>
+                        <form method="POST" action="<?= url('/categories/delete/' . (int) $category['id']) ?>" onsubmit="return confirm('Delete this category?')">
+                            <button class="btn btn-danger" type="submit">Delete</button>
+                        </form>
+                    <?php else: ?>
+                        <span><?= e($category['name']) ?></span>
+                    <?php endif; ?>
                 </div>
                 <?php if (error('edit_name_' . (int) $category['id'])): ?>
                     <p class="field-error"><?= e(error('edit_name_' . (int) $category['id'])) ?></p>

@@ -185,11 +185,31 @@ class TransactionController extends Controller
 
     private function validatedPayload(int $userId): ?array
     {
-        $type = trim((string) ($_POST['type'] ?? ''));
-        $categoryId = (int) ($_POST['category_id'] ?? 0);
-        $amount = (float) ($_POST['amount'] ?? 0);
-        $description = trim((string) ($_POST['description'] ?? ''));
-        $transactionDate = trim((string) ($_POST['transaction_date'] ?? ''));
+        $typeInput = $_POST['type'] ?? '';
+        $type = is_string($typeInput) ? trim($typeInput) : '';
+
+        $categoryIdInput = $_POST['category_id'] ?? '';
+        $validatedCategoryId = is_string($categoryIdInput)
+            ? filter_var($categoryIdInput, FILTER_VALIDATE_INT, [
+                'options' => [
+                    'min_range' => 1,
+                    'max_range' => 4294967295,
+                ],
+            ])
+            : false;
+        $categoryId = $validatedCategoryId === false ? 0 : $validatedCategoryId;
+
+        $amountInput = $_POST['amount'] ?? '';
+        $amountInput = is_string($amountInput) ? trim($amountInput) : '';
+        $amountHasValidFormat = preg_match('/\A[0-9]+(?:\.[0-9]{1,2})?\z/', $amountInput) === 1;
+        $numericAmount = $amountHasValidFormat ? (float) $amountInput : 0.0;
+
+        $descriptionInput = $_POST['description'] ?? '';
+        $description = is_string($descriptionInput) ? trim($descriptionInput) : '';
+        $descriptionIsString = is_string($descriptionInput);
+
+        $transactionDateInput = $_POST['transaction_date'] ?? '';
+        $transactionDate = is_string($transactionDateInput) ? trim($transactionDateInput) : '';
 
         $errors = [];
 
@@ -198,21 +218,56 @@ class TransactionController extends Controller
         }
 
         if ($categoryId <= 0) {
-            $errors['category_id'] = 'Category is required.';
+            $errors['category_id'] = 'Select a valid category.';
         }
 
-        if ($amount <= 0) {
+        if (!$descriptionIsString) {
+            $errors['description'] = 'Description must be text.';
+        }
+
+        if ($amountInput === '') {
+            $errors['amount'] = 'Amount is required.';
+        } elseif (!$amountHasValidFormat) {
+            $errors['amount'] = 'Enter a valid amount with up to two decimal places.';
+        } elseif ($numericAmount <= 0) {
             $errors['amount'] = 'Amount must be greater than 0.';
+        } elseif ($numericAmount > 9999999999.99) {
+            $errors['amount'] = 'Amount cannot exceed 9,999,999,999.99.';
         }
 
         if ($transactionDate === '') {
             $errors['transaction_date'] = 'Date is required.';
+        } else {
+            $dateParts = [];
+            $dateHasValidFormat = preg_match(
+                '/\A([0-9]{4})-([0-9]{2})-([0-9]{2})\z/',
+                $transactionDate,
+                $dateParts
+            ) === 1;
+
+            if ($dateHasValidFormat) {
+                $year = (int) $dateParts[1];
+                $month = (int) $dateParts[2];
+                $day = (int) $dateParts[3];
+                $dateHasValidFormat = $year >= 1000 && checkdate($month, $day, $year);
+            }
+
+            if (!$dateHasValidFormat) {
+                $errors['transaction_date'] = 'Enter a valid date.';
+            }
         }
 
-        $category = (new Category())->findAccessibleById($userId, $categoryId);
+        if ($categoryId > 0) {
+            $category = (new Category())->findAccessibleById($userId, $categoryId);
 
-        if ($category === null || $category['type'] !== $type) {
-            $errors['category_id'] = 'Selected category does not match transaction type.';
+            if ($category === null) {
+                $errors['category_id'] = 'Select a valid category.';
+            } elseif (
+                in_array($type, ['income', 'expense'], true)
+                && $category['type'] !== $type
+            ) {
+                $errors['category_id'] = 'Selected category does not match transaction type.';
+            }
         }
 
         if ($errors !== []) {
@@ -220,7 +275,7 @@ class TransactionController extends Controller
             \set_old_input([
                 'type' => $type,
                 'category_id' => $categoryId > 0 ? (string) $categoryId : '',
-                'amount' => $_POST['amount'] ?? '',
+                'amount' => $amountInput,
                 'description' => $description,
                 'transaction_date' => $transactionDate,
             ]);
@@ -230,7 +285,7 @@ class TransactionController extends Controller
         return [
             'type' => $type,
             'category_id' => $categoryId,
-            'amount' => $amount,
+            'amount' => $amountInput,
             'description' => $description,
             'transaction_date' => $transactionDate,
         ];
