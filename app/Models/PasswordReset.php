@@ -88,21 +88,48 @@ class PasswordReset
     public function resetPassword(string $tokenHash, string $passwordHash): bool
     {
         $pdo = Database::connection();
+
+        $userLookup = $pdo->prepare(
+            'SELECT user_id
+             FROM password_reset_tokens
+             WHERE token_hash = :token_hash
+               AND expires_at > CURRENT_TIMESTAMP
+             LIMIT 1'
+        );
+        $userLookup->execute(['token_hash' => $tokenHash]);
+        $userId = $userLookup->fetchColumn();
+
+        if ($userId === false) {
+            return false;
+        }
+
+        $userId = (int) $userId;
         $pdo->beginTransaction();
 
         try {
+            $userLock = $pdo->prepare('SELECT id FROM users WHERE id = :user_id FOR UPDATE');
+            $userLock->execute(['user_id' => $userId]);
+
+            if ($userLock->fetchColumn() === false) {
+                $pdo->rollBack();
+                return false;
+            }
+
             $tokenStmt = $pdo->prepare(
                 'SELECT user_id
                  FROM password_reset_tokens
                  WHERE token_hash = :token_hash
+                   AND user_id = :user_id
                    AND expires_at > CURRENT_TIMESTAMP
                  LIMIT 1
                  FOR UPDATE'
             );
-            $tokenStmt->execute(['token_hash' => $tokenHash]);
-            $userId = $tokenStmt->fetchColumn();
+            $tokenStmt->execute([
+                'token_hash' => $tokenHash,
+                'user_id' => $userId,
+            ]);
 
-            if ($userId === false) {
+            if ($tokenStmt->fetchColumn() === false) {
                 $pdo->rollBack();
                 return false;
             }
