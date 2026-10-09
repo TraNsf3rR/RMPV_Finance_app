@@ -32,6 +32,14 @@ CREATE TABLE IF NOT EXISTS transactions (
     CONSTRAINT fk_transactions_category FOREIGN KEY (category_id) REFERENCES categories(id)
 ) ENGINE=InnoDB;
 
+CREATE TABLE IF NOT EXISTS password_reset_tokens (
+    user_id INT UNSIGNED NOT NULL PRIMARY KEY,
+    token_hash CHAR(64) CHARACTER SET ascii COLLATE ascii_bin NOT NULL UNIQUE,
+    expires_at DATETIME NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_password_reset_tokens_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
 CREATE INDEX idx_transactions_user_date ON transactions(user_id, transaction_date);
 CREATE INDEX idx_transactions_user_type ON transactions(user_id, type);
 CREATE INDEX idx_categories_type ON categories(type);

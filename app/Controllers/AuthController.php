@@ -6,7 +6,11 @@ namespace App\Controllers;
 
 use App\Core\Auth;
 use App\Core\Controller;
+use App\Core\Mailer;
+use App\Models\PasswordReset;
 use App\Models\User;
+use PHPMailer\PHPMailer\Exception as MailerException;
+use RuntimeException;
 
 class AuthController extends Controller
 {
@@ -123,45 +127,110 @@ class AuthController extends Controller
     {
         Auth::requireGuest();
 
-        $email = trim((string) ($_POST['email'] ?? ''));
-        $password = trim((string) ($_POST['password'] ?? ''));
-        $confirm = trim((string) ($_POST['password_confirmation'] ?? ''));
-
+        $emailInput = $_POST['email'] ?? '';
+        $email = is_string($emailInput) ? trim($emailInput) : '';
         $errors = [];
 
-        if ($email === '') {
-            $errors['email'] = 'Email is required.';
-        } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
             $errors['email'] = 'Please enter a valid email address.';
-        }
-
-        if ($password === '') {
-            $errors['password'] = 'New password is required.';
-        } else {
-            $passwordError = $this->validatePassword($password);
-            if ($passwordError !== null) {
-                $errors['password'] = $passwordError;
-            }
-        }
-
-        if ($confirm === '') {
-            $errors['password_confirmation'] = 'Password confirmation is required.';
-        } elseif ($password !== $confirm) {
-            $errors['password_confirmation'] = 'Passwords do not match.';
-        }
-
-        $userModel = new User();
-        if ($email !== '' && filter_var($email, FILTER_VALIDATE_EMAIL) && !$userModel->findByEmail($email)) {
-            $errors['email'] = 'No account was found for this email.';
-        }
-
-        if ($errors !== []) {
             $this->backWithErrors('/forgot-password', $errors, [
                 'email' => $email,
             ]);
         }
 
-        $userModel->updatePasswordByEmail($email, password_hash($password, PASSWORD_DEFAULT));
+        $user = (new User())->findByEmail($email);
+
+        if ($user !== null) {
+            $token = bin2hex(random_bytes(32));
+            $tokenHash = hash('sha256', $token);
+            $userId = (int) $user['id'];
+            $passwordReset = new PasswordReset();
+
+            if ($passwordReset->issueForUser($userId, $tokenHash)) {
+                try {
+                    (new Mailer())->sendPasswordReset((string) $user['email'], $token);
+                } catch (MailerException | RuntimeException $exception) {
+                    $passwordReset->revoke($userId, $tokenHash);
+                    error_log('Password reset email delivery failed: ' . $exception->getMessage());
+                }
+            }
+        }
+
+        $this->flash(
+            'success',
+            'If an account exists for that email, password reset instructions will be sent shortly.'
+        );
+        $this->redirect('/forgot-password');
+    }
+
+    public function showResetPassword(): void
+    {
+        Auth::requireGuest();
+
+        $tokenInput = $_GET['token'] ?? '';
+        $token = is_string($tokenInput) ? $tokenInput : '';
+
+        if (!$this->isValidResetToken($token) || !(new PasswordReset())->hasValidToken(hash('sha256', $token))) {
+            $this->flash('error', 'That reset link is invalid or expired. Please request a new one.');
+            $this->redirect('/forgot-password');
+        }
+
+        header('Referrer-Policy: no-referrer');
+        header('Cache-Control: no-store, max-age=0');
+
+        $this->view('auth/reset-password', [
+            'title' => 'Choose a New Password',
+            'token' => $token,
+        ]);
+    }
+
+    public function resetPassword(): void
+    {
+        Auth::requireGuest();
+
+        $tokenInput = $_POST['token'] ?? '';
+        $token = is_string($tokenInput) ? $tokenInput : '';
+        $passwordReset = new PasswordReset();
+
+        if (!$this->isValidResetToken($token) || !$passwordReset->hasValidToken(hash('sha256', $token))) {
+            $this->flash('error', 'That reset link is invalid or expired. Please request a new one.');
+            $this->redirect('/forgot-password');
+        }
+
+        $passwordInput = $_POST['password'] ?? '';
+        $password = is_string($passwordInput) ? trim($passwordInput) : '';
+        $confirmationInput = $_POST['password_confirmation'] ?? '';
+        $confirmation = is_string($confirmationInput) ? trim($confirmationInput) : '';
+        $errors = [];
+
+        $passwordError = $this->validatePassword($password);
+        if ($passwordError !== null) {
+            $errors['password'] = $passwordError;
+        }
+
+        if ($confirmation === '') {
+            $errors['password_confirmation'] = 'Password confirmation is required.';
+        } elseif ($password !== $confirmation) {
+            $errors['password_confirmation'] = 'Passwords do not match.';
+        }
+
+        if ($errors !== []) {
+            $this->backWithErrors(
+                '/reset-password?token=' . rawurlencode($token),
+                $errors
+            );
+        }
+
+        $updated = $passwordReset->resetPassword(
+            hash('sha256', $token),
+            password_hash($password, PASSWORD_DEFAULT)
+        );
+
+        if (!$updated) {
+            $this->flash('error', 'That reset link is invalid or expired. Please request a new one.');
+            $this->redirect('/forgot-password');
+        }
+
         $this->flash('success', 'Password updated. You can now sign in.');
         $this->redirect('/login');
     }
@@ -186,5 +255,10 @@ class AuthController extends Controller
         }
 
         return null;
+    }
+
+    private function isValidResetToken(string $token): bool
+    {
+        return preg_match('/\A[a-f0-9]{64}\z/', $token) === 1;
     }
 }

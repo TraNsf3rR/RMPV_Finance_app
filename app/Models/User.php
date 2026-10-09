@@ -38,17 +38,4 @@ class User
 
         return $user ?: null;
     }
-
-    public function updatePasswordByEmail(string $email, string $passwordHash): bool
-    {
-        $stmt = Database::connection()->prepare(
-            'UPDATE users SET password_hash = :password_hash WHERE email = :email'
-        );
-        $stmt->execute([
-            'email' => $email,
-            'password_hash' => $passwordHash,
-        ]);
-
-        return $stmt->rowCount() > 0;
-    }
 }

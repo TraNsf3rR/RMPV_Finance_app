@@ -39,7 +39,7 @@ Simple dark-themed finance tracker built with PHP, HTML, MySQL, CSS, JavaScript,
   - .htaccess (Apache URL rewriting)
   - assets/
   - index.php
-  - router.php (PHP built-in server routing)
+  - router.php (optional custom PHP built-in server routing)
 - routes.php
 
 ## Setup
@@ -47,21 +47,45 @@ Simple dark-themed finance tracker built with PHP, HTML, MySQL, CSS, JavaScript,
 1. Configure DB connection:
    - Edit `config/config.php` if needed.
 
-2. Run server:
+2. Install dependencies:
 
 ```bash
-php -S localhost:8080 -t public public/router.php
+composer install
 ```
 
-3. Open app:
+3. Configure Gmail for password-reset email:
+   1. Enable 2-Step Verification for the Gmail account that will send email.
+   2. Open [Google App Passwords](https://myaccount.google.com/apppasswords), create an app password, and keep it available. Use this app password rather than your regular Google password.
+   3. Stop any currently running development server with `Ctrl+C`.
+   4. In PowerShell, from the project directory, set the email environment variables. Enter the generated app password without spaces when prompted:
+
+```powershell
+$env:APP_URL = 'http://localhost:8080'
+$env:MAIL_USERNAME = Read-Host 'Gmail address'
+$env:MAIL_FROM_ADDRESS = $env:MAIL_USERNAME
+$securePassword = Read-Host 'Google app password' -AsSecureString
+$env:MAIL_PASSWORD = [System.Net.NetworkCredential]::new('', $securePassword).Password
+```
+
+These variables apply only to the current PowerShell session. Keep using this same window to start the server. The app defaults to Gmail SMTP at `smtp.gmail.com:587` with STARTTLS; `MAIL_HOST` and `MAIL_PORT` only need to be set if you use a different SMTP server. Never put the app password in source control or share it.
+
+4. Run server:
+
+```bash
+php -S localhost:8080 -t public
+```
+
+5. Open app:
 
 - http://localhost:8080/register
 
-The built-in server uses `public/router.php` to forward application routes to `index.php` while serving existing asset files directly. For Apache, point the document root at `public/` and enable `mod_rewrite`; `public/.htaccess` forwards application routes to the front controller.
+To test password-reset email, register an account, open `/forgot-password`, and submit that account's email. Check the inbox and spam folder. The reset link expires after one hour. The generic response does not confirm whether an account exists.
 
-4. Database auto setup:
+The PHP built-in server can serve this app using `public/index.php` as its front controller; the separate `public/router.php` script is optional. For Apache, point the document root at `public/` and enable `mod_rewrite`; `public/.htaccess` forwards application routes to the front controller.
 
-- On first request, the app automatically creates the database, tables, indexes, and default categories.
+6. Database auto setup:
+
+- On first database request, the app automatically creates the database, tables, indexes, and default categories, including the password-reset token table.
 - Make sure the configured MySQL user has permission to create databases/tables/indexes.
 
 ## Notes

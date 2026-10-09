@@ -6,6 +6,8 @@ session_start();
 
 define('BASE_PATH', dirname(__DIR__));
 
+require BASE_PATH . '/vendor/autoload.php';
+
 spl_autoload_register(function (string $class): void {
     $prefix = 'App\\';
     $baseDir = BASE_PATH . '/app/';

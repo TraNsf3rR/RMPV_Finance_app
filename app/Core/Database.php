@@ -99,6 +99,16 @@ class Database
             ) ENGINE=InnoDB'
         );
 
+        $connection->exec(
+            'CREATE TABLE IF NOT EXISTS password_reset_tokens (
+                user_id INT UNSIGNED NOT NULL PRIMARY KEY,
+                token_hash CHAR(64) CHARACTER SET ascii COLLATE ascii_bin NOT NULL UNIQUE,
+                expires_at DATETIME NOT NULL,
+                created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                CONSTRAINT fk_password_reset_tokens_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+            ) ENGINE=InnoDB'
+        );
+
         self::ensureIndexExists($connection, 'transactions', 'idx_transactions_user_date', 'user_id, transaction_date');
         self::ensureIndexExists($connection, 'transactions', 'idx_transactions_user_type', 'user_id, type');
         self::ensureIndexExists($connection, 'categories', 'idx_categories_type', 'type');

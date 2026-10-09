@@ -15,6 +15,8 @@ $router->get('/register', [AuthController::class, 'showRegister']);
 $router->post('/register', [AuthController::class, 'register']);
 $router->get('/forgot-password', [AuthController::class, 'showForgotPassword']);
 $router->post('/forgot-password', [AuthController::class, 'forgotPassword']);
+$router->get('/reset-password', [AuthController::class, 'showResetPassword']);
+$router->post('/reset-password', [AuthController::class, 'resetPassword']);
 $router->post('/logout', [AuthController::class, 'logout']);
 
 $router->get('/dashboard', [DashboardController::class, 'index']);
