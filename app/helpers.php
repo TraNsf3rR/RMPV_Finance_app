@@ -42,6 +42,33 @@ function e(string $value): string
     return htmlspecialchars($value, ENT_QUOTES, 'UTF-8');
 }
 
+function csrf_token(): string
+{
+    $token = $_SESSION['_csrf_token'] ?? null;
+
+    if (!is_string($token) || $token === '') {
+        $token = bin2hex(random_bytes(32));
+        $_SESSION['_csrf_token'] = $token;
+    }
+
+    return $token;
+}
+
+function csrf_token_is_valid(mixed $token): bool
+{
+    $sessionToken = $_SESSION['_csrf_token'] ?? null;
+
+    return is_string($token)
+        && is_string($sessionToken)
+        && $sessionToken !== ''
+        && hash_equals($sessionToken, $token);
+}
+
+function csrf_field(): string
+{
+    return '<input type="hidden" name="csrf_token" value="' . e(csrf_token()) . '">';
+}
+
 function trim_input(mixed $value): mixed
 {
     if (is_array($value)) {

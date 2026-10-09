@@ -9,6 +9,7 @@ $confirmationError = error('password_confirmation');
         <p class="muted">Enter a new password for your account.</p>
 
         <form method="POST" action="<?= url('/reset-password') ?>" class="stack" novalidate>
+            <?= csrf_field() ?>
             <input type="hidden" name="token" value="<?= e($token) ?>">
 
             <div class="form-field">

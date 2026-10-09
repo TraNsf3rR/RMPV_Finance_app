@@ -9,6 +9,7 @@ $passwordError = error('password');
         <p class="muted">Manage your personal finances in one place.</p>
 
         <form method="POST" action="<?= url('/login') ?>" class="stack" novalidate>
+            <?= csrf_field() ?>
             <div class="form-field">
                 <label for="loginEmail">Email</label>
                 <input

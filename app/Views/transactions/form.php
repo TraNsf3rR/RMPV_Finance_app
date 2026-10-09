@@ -13,6 +13,7 @@ $descriptionError = error('description');
 
 <section class="card form-card">
     <form method="POST" action="<?= url($action) ?>" class="stack" novalidate>
+        <?= csrf_field() ?>
         <input type="hidden" name="back_to" value="<?= e($backTo) ?>">
         <div class="form-field">
             <label for="typeField">Type</label>

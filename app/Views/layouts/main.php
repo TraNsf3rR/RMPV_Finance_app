@@ -53,6 +53,7 @@ unset($_SESSION['flash']);
                     <div class="user-block">
                         <span><?= e($user['name']) ?></span>
                         <form method="POST" action="<?= url('/logout') ?>">
+                            <?= csrf_field() ?>
                             <button class="btn btn-danger" type="submit">Logout</button>
                         </form>
                     </div>

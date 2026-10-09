@@ -33,12 +33,14 @@ class Auth
     {
         $_SESSION['user_id'] = $userId;
         session_regenerate_id(true);
+        unset($_SESSION['_csrf_token']);
     }
 
     public static function logout(): void
     {
         unset($_SESSION['user_id']);
         session_regenerate_id(true);
+        unset($_SESSION['_csrf_token']);
     }
 
     public static function requireGuest(): void

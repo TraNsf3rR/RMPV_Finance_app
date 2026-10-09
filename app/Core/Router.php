@@ -34,6 +34,13 @@ class Router
                 continue;
             }
 
+            if ($method === 'POST' && !\csrf_token_is_valid($_POST['csrf_token'] ?? null)) {
+                http_response_code(403);
+                header('Content-Type: text/plain; charset=UTF-8');
+                echo 'Request could not be verified. Please reload the page and try again.';
+                return;
+            }
+
             $params = array_filter($matches, static fn ($key) => !is_int($key), ARRAY_FILTER_USE_KEY);
             $this->invokeHandler($handler, $params);
             return;

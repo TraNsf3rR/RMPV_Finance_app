@@ -6,6 +6,7 @@
         <p class="muted">Enter your account email and we’ll send a password reset link if an account matches.</p>
 
         <form method="POST" action="<?= url('/forgot-password') ?>" class="stack" novalidate>
+            <?= csrf_field() ?>
             <div class="form-field">
                 <label for="forgotPasswordEmail">Email</label>
                 <input

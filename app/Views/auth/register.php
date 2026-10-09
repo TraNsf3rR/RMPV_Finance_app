@@ -11,6 +11,7 @@ $confirmationError = error('password_confirmation');
         <p class="muted">Start tracking your income and expenses today.</p>
 
         <form method="POST" action="<?= url('/register') ?>" class="stack" novalidate>
+            <?= csrf_field() ?>
             <div class="form-field">
                 <label for="registerName">Name</label>
                 <input

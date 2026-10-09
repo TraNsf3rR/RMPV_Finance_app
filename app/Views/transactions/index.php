@@ -117,6 +117,7 @@
                         <td class="actions-cell">
                             <a class="btn" href="<?= url('/transactions/edit/' . (int) $item['id'] . '?back_to=' . rawurlencode($backTo)) ?>" aria-label="Edit transaction: <?= e($item['description'] ?: $item['category_name']) ?>">Edit</a>
                             <form method="POST" action="<?= url('/transactions/delete/' . (int) $item['id']) ?>" onsubmit="return confirm('Delete this transaction?')">
+                                <?= csrf_field() ?>
                                 <input type="hidden" name="back_to" value="<?= e($backTo) ?>">
                                 <button class="btn btn-danger" type="submit" aria-label="Delete transaction: <?= e($item['description'] ?: $item['category_name']) ?>">Delete</button>
                             </form>
