@@ -36,8 +36,10 @@ Simple dark-themed finance tracker built with PHP, HTML, MySQL, CSS, JavaScript,
 - config/
 - database/
 - public/
+  - .htaccess (Apache URL rewriting)
   - assets/
   - index.php
+  - router.php (PHP built-in server routing)
 - routes.php
 
 ## Setup
@@ -48,12 +50,14 @@ Simple dark-themed finance tracker built with PHP, HTML, MySQL, CSS, JavaScript,
 2. Run server:
 
 ```bash
-php -S localhost:8080 -t public
+php -S localhost:8080 -t public public/router.php
 ```
 
 3. Open app:
 
-- http://localhost:8080/index.php/register
+- http://localhost:8080/register
+
+The built-in server uses `public/router.php` to forward application routes to `index.php` while serving existing asset files directly. For Apache, point the document root at `public/` and enable `mod_rewrite`; `public/.htaccess` forwards application routes to the front controller.
 
 4. Database auto setup:
 
@@ -63,5 +67,4 @@ php -S localhost:8080 -t public
 ## Notes
 
 - Routes are defined in `routes.php`.
-- Because of the built-in PHP server command, route links are served through `index.php` (example: `/index.php/dashboard`).
-
+- `public/index.php` remains the front controller, but the web server forwards clean URLs such as `/dashboard` to it internally.

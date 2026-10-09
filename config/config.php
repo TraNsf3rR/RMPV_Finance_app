@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 return [
     'app_name' => 'Finance Tracker',
-    'base_url' => '/index.php',
+    'base_url' => '',
     'db' => [
         'host' => '127.0.0.1',
         'port' => '3306',

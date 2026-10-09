@@ -25,10 +25,10 @@ function config(string $key, mixed $default = null): mixed
 
 function url(string $path = ''): string
 {
-    $base = rtrim((string) config('base_url', '/index.php'), '/');
+    $base = rtrim((string) config('base_url', ''), '/');
     $path = '/' . ltrim($path, '/');
 
-    return $base . ($path === '/' ? '' : $path);
+    return $base . $path;
 }
 
 function redirect(string $path): never
@@ -91,7 +91,11 @@ function sanitize_return_path(?string $path, string $default = '/transactions'):
     }
 
     $routePath = $parts['path'] ?? '';
-    if ($routePath === '' || $routePath[0] !== '/') {
+    if (
+        $routePath === ''
+        || $routePath[0] !== '/'
+        || str_contains($routePath, '\\')
+    ) {
         return $default;
     }
 
