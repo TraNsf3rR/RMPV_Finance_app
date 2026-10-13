@@ -68,17 +68,29 @@ class AuthController extends Controller
     {
         Auth::requireGuest();
 
-        $name = trim((string) ($_POST['name'] ?? ''));
+        $nameInput = $_POST['name'] ?? '';
+        $nameIsString = is_string($nameInput);
+        $name = $nameIsString ? trim($nameInput) : '';
         $email = trim((string) ($_POST['email'] ?? ''));
         $password = trim((string) ($_POST['password'] ?? ''));
         $confirm = trim((string) ($_POST['password_confirmation'] ?? ''));
 
         $errors = [];
 
-        if ($name === '' || $email === '' || $password === '' || $confirm === '') {
-            if ($name === '') {
-                $errors['name'] = 'Name is required.';
+        if (!$nameIsString) {
+            $errors['name'] = 'Name must be text.';
+        } elseif ($name === '') {
+            $errors['name'] = 'Name is required.';
+        } else {
+            $nameLength = \unicode_character_count($name);
+            if ($nameLength === null) {
+                $errors['name'] = 'Name must contain valid UTF-8 text.';
+            } elseif ($nameLength > 120) {
+                $errors['name'] = 'Name cannot exceed 120 characters.';
             }
+        }
+
+        if ($email === '' || $password === '' || $confirm === '') {
             if ($email === '') {
                 $errors['email'] = 'Email is required.';
             }

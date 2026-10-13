@@ -39,14 +39,17 @@ class CategoryController extends Controller
             $this->redirect('/login');
         }
 
-        $name = trim((string) ($_POST['name'] ?? ''));
+        $nameInput = $_POST['name'] ?? '';
+        $name = is_string($nameInput) ? trim($nameInput) : '';
         $type = trim((string) ($_POST['type'] ?? ''));
+        $nameError = $this->validateCategoryName($nameInput, $name);
 
-        if ($name === '' || !in_array($type, ['income', 'expense'], true)) {
+        if ($nameError !== null || !in_array($type, ['income', 'expense'], true)) {
+            $errorKey = 'create_' . $type . '_name';
             $this->backWithErrors('/categories', [
-                'create_' . $type . '_name' => 'Category name is required.',
+                $errorKey => $nameError ?? 'Category name is required.',
             ], [
-                'create_' . $type . '_name' => $name,
+                $errorKey => $name,
             ]);
         }
 
@@ -64,14 +67,17 @@ class CategoryController extends Controller
             $this->redirect('/login');
         }
 
-        $name = trim((string) ($_POST['name'] ?? ''));
+        $nameInput = $_POST['name'] ?? '';
+        $name = is_string($nameInput) ? trim($nameInput) : '';
         $type = trim((string) ($_POST['type'] ?? ''));
+        $nameError = $this->validateCategoryName($nameInput, $name);
 
-        if ($name === '' || !in_array($type, ['income', 'expense'], true)) {
+        if ($nameError !== null || !in_array($type, ['income', 'expense'], true)) {
+            $errorKey = 'edit_name_' . (int) $id;
             $this->backWithErrors('/categories', [
-                'edit_name_' . (int) $id => 'Category name is required.',
+                $errorKey => $nameError ?? 'Category name is required.',
             ], [
-                'edit_name_' . (int) $id => $name,
+                $errorKey => $name,
             ]);
         }
 
@@ -104,5 +110,27 @@ class CategoryController extends Controller
 
         $this->flash('success', 'Category deleted.');
         $this->redirect('/categories');
+    }
+
+    private function validateCategoryName(mixed $nameInput, string $name): ?string
+    {
+        if (!is_string($nameInput)) {
+            return 'Category name must be text.';
+        }
+
+        if ($name === '') {
+            return 'Category name is required.';
+        }
+
+        $nameLength = \unicode_character_count($name);
+        if ($nameLength === null) {
+            return 'Category name must contain valid UTF-8 text.';
+        }
+
+        if ($nameLength > 120) {
+            return 'Category name cannot exceed 120 characters.';
+        }
+
+        return null;
     }
 }

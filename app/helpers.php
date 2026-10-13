@@ -42,6 +42,24 @@ function e(string $value): string
     return htmlspecialchars($value, ENT_QUOTES, 'UTF-8');
 }
 
+function unicode_character_count(string $value): ?int
+{
+    if (preg_match('//u', $value) !== 1) {
+        return null;
+    }
+
+    $count = 0;
+    $byteLength = strlen($value);
+
+    for ($index = 0; $index < $byteLength; $index++) {
+        if ((ord($value[$index]) & 0xC0) !== 0x80) {
+            $count++;
+        }
+    }
+
+    return $count;
+}
+
 function format_money(string $amount): string
 {
     if (preg_match('/\A(-?)([0-9]+)(?:\.([0-9]{1,2}))?\z/', $amount, $parts) !== 1) {
