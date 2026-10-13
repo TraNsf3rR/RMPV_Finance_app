@@ -35,9 +35,11 @@ class Router
             }
 
             if ($method === 'POST' && !\csrf_token_is_valid($_POST['csrf_token'] ?? null)) {
-                http_response_code(403);
-                header('Content-Type: text/plain; charset=UTF-8');
-                echo 'Request could not be verified. Please reload the page and try again.';
+                $this->renderErrorPage(
+                    403,
+                    'Request could not be verified',
+                    'Please reload the page and try again.'
+                );
                 return;
             }
 
@@ -46,8 +48,18 @@ class Router
             return;
         }
 
-        http_response_code(404);
-        echo '404 Not Found';
+        $this->renderErrorPage(
+            404,
+            'Page not found',
+            'The page you requested could not be found.'
+        );
+    }
+
+    private function renderErrorPage(int $statusCode, string $title, string $message): void
+    {
+        http_response_code($statusCode);
+        header('Content-Type: text/html; charset=UTF-8');
+        require BASE_PATH . '/app/Views/errors/http.php';
     }
 
     private function invokeHandler(callable|array $handler, array $params): void
