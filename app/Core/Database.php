@@ -42,8 +42,10 @@ class Database
 
             self::initializeSchemaIfNeeded(self::$connection);
         } catch (PDOException $e) {
+            error_log('Database connection failed: ' . $e->getMessage());
             http_response_code(500);
-            echo 'Database connection failed: ' . $e->getMessage();
+            header('Content-Type: text/plain; charset=UTF-8');
+            echo 'Database connection failed. Please try again later.';
             exit;
         }
 

@@ -47,6 +47,7 @@ Simple PHP MVC finance tracker with a dark theme and a selectable light theme, b
 
 1. Configure DB connection:
    - Edit `config/config.php` if needed.
+   - The sample configuration uses the MySQL `root` account with no password for local development only. Never deploy with these defaults; use a dedicated database account with a strong password, keep credentials out of source control, and grant the permissions required by the automatic database setup.
 
 2. Install dependencies:
 
