@@ -11,7 +11,10 @@ class User
     public function create(string $name, string $email, string $passwordHash): int
     {
         $pdo = Database::connection();
-        $stmt = $pdo->prepare('INSERT INTO users (name, email, password_hash) VALUES (:name, :email, :password_hash)');
+        $stmt = $pdo->prepare(
+            'INSERT INTO users (name, email, password_hash, email_verified)
+             VALUES (:name, :email, :password_hash, 0)'
+        );
         $stmt->execute([
             'name' => $name,
             'email' => $email,

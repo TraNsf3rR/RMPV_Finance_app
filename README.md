@@ -5,7 +5,7 @@ Simple PHP MVC finance tracker with a dark theme and a selectable light theme, b
 ## Features
 
 - Dark/light theme toggle with the preference saved in the browser
-- Register and login
+- Register, verify email, and login
 - Dashboard:
   - Total balance (income - expenses)
   - Monthly income
@@ -55,7 +55,7 @@ Simple PHP MVC finance tracker with a dark theme and a selectable light theme, b
 composer install
 ```
 
-3. Configure Gmail for password-reset email:
+3. Configure Gmail for account-verification and password-reset email:
    1. Enable 2-Step Verification for the Gmail account that will send email.
    2. Open [Google App Passwords](https://myaccount.google.com/apppasswords), create an app password, and keep it available. Use this app password rather than your regular Google password.
    3. Stop any currently running development server with `Ctrl+C`.
@@ -70,6 +70,7 @@ $env:MAIL_PASSWORD = [System.Net.NetworkCredential]::new('', $securePassword).Pa
 ```
 
 These variables apply only to the current PowerShell session. Keep using this same window to start the server. The app defaults to Gmail SMTP at `smtp.gmail.com:587` with STARTTLS; `MAIL_HOST` and `MAIL_PORT` only need to be set if you use a different SMTP server. Never put the app password in source control or share it.
+For non-local deployments, set `APP_URL` to the site's HTTPS origin. Plain HTTP is allowed only for localhost development.
 
 4. Run server:
 
@@ -81,13 +82,15 @@ php -S localhost:8080 -t public
 
 - http://localhost:8080/register
 
-To test password-reset email, register an account, open `/forgot-password`, and submit that account's email. Check the inbox and spam folder. The reset link expires after one hour. The generic response does not confirm whether an account exists.
+After registration, the account remains inactive until the user opens the email link and confirms activation on the website. Activation links expire after 24 hours; a new link can be requested from the activation notice, with a one-minute resend limit. The app does not sign in unverified accounts. Accounts created before this feature is installed remain active.
+
+To test password-reset email, use a verified account, open `/forgot-password`, and submit that account's email. Check the inbox and spam folder. The reset link expires after one hour. The generic response does not confirm whether an account exists.
 
 The PHP built-in server can serve this app using `public/index.php` as its front controller; the separate `public/router.php` script is optional. For Apache, point the document root at `public/` and enable `mod_rewrite`; `public/.htaccess` forwards application routes to the front controller.
 
 6. Database auto setup:
 
-- On first database request, the app automatically creates the database, tables, indexes, and default categories, including the password-reset token table.
+- On first database request, the app automatically creates the database, tables, indexes, and default categories, including password-reset and email-verification token tables. Existing accounts are preserved as verified when the email-verification column is added.
 - Make sure the configured MySQL user has permission to create databases/tables/indexes.
 
 ## Routes
@@ -102,6 +105,10 @@ Routes are registered in [`routes.php`](./routes.php). Dashboard, transaction, a
 | POST | `/login` |
 | GET | `/register` |
 | POST | `/register` |
+| GET | `/verify-email/pending` |
+| POST | `/verify-email/resend` |
+| GET | `/verify-email` |
+| POST | `/verify-email` |
 | GET | `/forgot-password` |
 | POST | `/forgot-password` |
 | GET | `/reset-password` |
@@ -146,12 +153,13 @@ foreach ($file in $phpFiles) {
 
 Use a disposable account for these checks and remove test transactions and categories afterward:
 
-1. Register with a name of exactly 120 Unicode characters, then try 121. The first should be accepted; the second should show a validation error without truncating the value. Repeat for custom category creation and editing.
-2. Add income transactions of `0.10` and `0.20`, then an expense of `0.30`. The dashboard and transaction totals should show a balance of exactly `€0.00`. An amount greater than `9,999,999,999.99` should be rejected.
-3. Submit an invalid calendar date such as `2026-02-30` and confirm no transaction is saved. Built-in categories should have no edit/delete controls; direct update/delete requests with a valid CSRF token must not alter them.
-4. Remove the `csrf_token` field from a POST form and submit it. Confirm the response is a styled 403 page. Visit an unknown route and confirm the styled 404 page and HTTP 404 status.
-5. Request a password reset, use the emailed link to change the password, then try the same link again; it should be rejected. Reset links expire after one hour.
-6. In the browser's Network panel, confirm the dashboard loads the local `chart.js-4.5.1` asset and a non-dashboard page does not request Chart.js.
+1. Register with a disposable email address. Confirm that the app shows the activation notice, the account cannot sign in before activation, and the email contains an activation link. Open the link, submit the confirmation form, and confirm the success message appears on the login page. Try the link again and confirm it is rejected. Verify that an expired link is rejected and that resending is limited to once per minute.
+2. Register with a name of exactly 120 Unicode characters, then try 121. The first should be accepted; the second should show a validation error without truncating the value. Repeat for custom category creation and editing.
+3. Add income transactions of `0.10` and `0.20`, then an expense of `0.30`. The dashboard and transaction totals should show a balance of exactly `€0.00`. An amount greater than `9,999,999,999.99` should be rejected.
+4. Submit an invalid calendar date such as `2026-02-30` and confirm no transaction is saved. Built-in categories should have no edit/delete controls; direct update/delete requests with a valid CSRF token must not alter them.
+5. Remove the `csrf_token` field from a POST form and submit it. Confirm the response is a styled 403 page. Visit an unknown route and confirm the styled 404 page and HTTP 404 status.
+6. Request a password reset for a verified account, use the emailed link to change the password, then try the same link again; it should be rejected. Reset links expire after one hour.
+7. In the browser's Network panel, confirm the dashboard loads the local `chart.js-4.5.1` asset and a non-dashboard page does not request Chart.js.
 
 ## Notes
 

@@ -7,6 +7,7 @@ namespace App\Controllers;
 use App\Core\Auth;
 use App\Core\Controller;
 use App\Core\Mailer;
+use App\Models\EmailVerification;
 use App\Models\PasswordReset;
 use App\Models\User;
 use PHPMailer\PHPMailer\Exception as MailerException;
@@ -45,6 +46,12 @@ class AuthController extends Controller
             ], [
                 'email' => $email,
             ]);
+        }
+
+        if ((int) $user['email_verified'] !== 1) {
+            $_SESSION['_pending_verification_email'] = (string) $user['email'];
+            $this->flash('error', 'Activate your email address before signing in.');
+            $this->redirect('/verify-email/pending');
         }
 
         Auth::login((int) $user['id']);
@@ -115,12 +122,6 @@ class AuthController extends Controller
             $errors['password_confirmation'] = 'Passwords do not match.';
         }
 
-        $userModel = new User();
-
-        if ($userModel->findByEmail($email)) {
-            $errors['email'] = 'Email is already used.';
-        }
-
         if ($errors !== []) {
             $this->backWithErrors('/register', $errors, [
                 'name' => $name,
@@ -128,11 +129,123 @@ class AuthController extends Controller
             ]);
         }
 
-        $id = $userModel->create($name, $email, password_hash($password, PASSWORD_DEFAULT));
-        Auth::login($id);
+        $userModel = new User();
+        $existingUser = $userModel->findByEmail($email);
 
-        $this->flash('success', 'Account created successfully.');
-        $this->redirect('/dashboard');
+        if ($existingUser !== null) {
+            if ((int) $existingUser['email_verified'] !== 1) {
+                $_SESSION['_pending_verification_email'] = $email;
+                $this->flash('error', 'An account with this email is waiting for activation. Request a new link below.');
+                $this->redirect('/verify-email/pending');
+            }
+
+            $this->backWithErrors('/register', [
+                'email' => 'Email is already used.',
+            ], [
+                'name' => $name,
+                'email' => $email,
+            ]);
+        }
+
+        $id = $userModel->create($name, $email, password_hash($password, PASSWORD_DEFAULT));
+        $_SESSION['_pending_verification_email'] = $email;
+
+        try {
+            if ($this->sendEmailVerification($id, $email)) {
+                $this->flash('success', 'Account created. Check your email for an activation link before signing in.');
+            } else {
+                $this->flash('error', 'Your account was created, but an activation link could not be issued. Please request a new one.');
+            }
+        } catch (MailerException | RuntimeException $exception) {
+            error_log('Account verification email delivery failed: ' . $exception->getMessage());
+            $this->flash('error', 'Your account was created, but the activation email could not be sent. Check the mail settings and try again.');
+        }
+
+        $this->redirect('/verify-email/pending');
+    }
+
+    public function showEmailVerificationPending(): void
+    {
+        Auth::requireGuest();
+
+        $email = $_SESSION['_pending_verification_email'] ?? '';
+        $this->view('auth/verification-pending', [
+            'title' => 'Activate Your Account',
+            'email' => is_string($email) ? $email : '',
+        ]);
+    }
+
+    public function showEmailVerification(): void
+    {
+        Auth::requireGuest();
+
+        $tokenInput = $_GET['token'] ?? '';
+        $token = is_string($tokenInput) ? $tokenInput : '';
+        $isValidToken = $this->isValidEmailVerificationToken($token)
+            && (new EmailVerification())->hasValidToken(hash('sha256', $token));
+
+        header('Referrer-Policy: no-referrer');
+        header('Cache-Control: no-store, max-age=0');
+
+        $this->view('auth/verify-email', [
+            'title' => 'Activate Your Account',
+            'isValidToken' => $isValidToken,
+            'token' => $isValidToken ? $token : '',
+        ]);
+    }
+
+    public function verifyEmail(): void
+    {
+        Auth::requireGuest();
+
+        $tokenInput = $_POST['token'] ?? '';
+        $token = is_string($tokenInput) ? $tokenInput : '';
+        $verified = $this->isValidEmailVerificationToken($token)
+            && (new EmailVerification())->verify(hash('sha256', $token));
+
+        if (!$verified) {
+            $this->flash('error', 'This activation link is invalid, expired, or already used. Request a new link.');
+            $this->redirect('/verify-email/pending');
+        }
+
+        unset($_SESSION['_pending_verification_email']);
+        $this->flash('success', 'Your account has been activated. You can now sign in.');
+        $this->redirect('/login');
+    }
+
+    public function resendEmailVerification(): void
+    {
+        Auth::requireGuest();
+
+        $emailInput = $_POST['email'] ?? '';
+        $email = is_string($emailInput) ? trim($emailInput) : '';
+
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            $this->backWithErrors('/verify-email/pending', [
+                'email' => 'Please enter a valid email address.',
+            ], [
+                'email' => $email,
+            ]);
+        }
+
+        $_SESSION['_pending_verification_email'] = $email;
+        $user = (new User())->findByEmail($email);
+
+        if ($user !== null && (int) $user['email_verified'] !== 1) {
+            try {
+                $this->sendEmailVerification((int) $user['id'], (string) $user['email']);
+            } catch (MailerException | RuntimeException $exception) {
+                error_log('Account verification email delivery failed: ' . $exception->getMessage());
+                $this->flash('error', 'The activation email could not be sent. Check the mail settings and try again.');
+                $this->redirect('/verify-email/pending');
+            }
+        }
+
+        $this->flash(
+            'success',
+            'If this address belongs to an unverified account, an activation link has been sent. Wait one minute before requesting another.'
+        );
+        $this->redirect('/verify-email/pending');
     }
 
     public function forgotPassword(): void
@@ -272,5 +385,30 @@ class AuthController extends Controller
     private function isValidResetToken(string $token): bool
     {
         return preg_match('/\A[a-f0-9]{64}\z/', $token) === 1;
+    }
+
+    private function isValidEmailVerificationToken(string $token): bool
+    {
+        return preg_match('/\A[a-f0-9]{64}\z/', $token) === 1;
+    }
+
+    private function sendEmailVerification(int $userId, string $email): bool
+    {
+        $token = bin2hex(random_bytes(32));
+        $tokenHash = hash('sha256', $token);
+        $emailVerification = new EmailVerification();
+
+        if (!$emailVerification->issueForUser($userId, $tokenHash)) {
+            return false;
+        }
+
+        try {
+            (new Mailer())->sendEmailVerification($email, $token);
+        } catch (MailerException | RuntimeException $exception) {
+            $emailVerification->revoke($userId, $tokenHash);
+            throw $exception;
+        }
+
+        return true;
     }
 }

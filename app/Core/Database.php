@@ -70,8 +70,16 @@ class Database
                 name VARCHAR(120) NOT NULL,
                 email VARCHAR(190) NOT NULL UNIQUE,
                 password_hash VARCHAR(255) NOT NULL,
+                email_verified TINYINT(1) NOT NULL DEFAULT 1,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             ) ENGINE=InnoDB'
+        );
+
+        self::ensureColumnExists(
+            $connection,
+            'users',
+            'email_verified',
+            'TINYINT(1) NOT NULL DEFAULT 1 AFTER password_hash'
         );
 
         $connection->exec(
@@ -111,12 +119,41 @@ class Database
             ) ENGINE=InnoDB'
         );
 
+        $connection->exec(
+            'CREATE TABLE IF NOT EXISTS email_verification_tokens (
+                user_id INT UNSIGNED NOT NULL PRIMARY KEY,
+                token_hash CHAR(64) CHARACTER SET ascii COLLATE ascii_bin NOT NULL UNIQUE,
+                expires_at DATETIME NOT NULL,
+                created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                CONSTRAINT fk_email_verification_tokens_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+            ) ENGINE=InnoDB'
+        );
+
         self::ensureIndexExists($connection, 'transactions', 'idx_transactions_user_date', 'user_id, transaction_date');
         self::ensureIndexExists($connection, 'transactions', 'idx_transactions_user_type', 'user_id, type');
         self::ensureIndexExists($connection, 'categories', 'idx_categories_type', 'type');
 
         self::seedDefaultCategories($connection);
         self::$initialized = true;
+    }
+
+    private static function ensureColumnExists(PDO $connection, string $table, string $column, string $definition): void
+    {
+        $stmt = $connection->prepare(
+            'SELECT COUNT(*) FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = :table_name AND column_name = :column_name'
+        );
+        $stmt->execute([
+            'table_name' => $table,
+            'column_name' => $column,
+        ]);
+
+        if ((int) $stmt->fetchColumn() > 0) {
+            return;
+        }
+
+        $safeTable = str_replace('`', '``', $table);
+        $safeColumn = str_replace('`', '``', $column);
+        $connection->exec("ALTER TABLE `{$safeTable}` ADD COLUMN `{$safeColumn}` {$definition}");
     }
 
     private static function seedDefaultCategories(PDO $connection): void
