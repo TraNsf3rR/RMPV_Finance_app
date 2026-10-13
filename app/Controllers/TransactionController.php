@@ -29,20 +29,10 @@ class TransactionController extends Controller
         ];
         $backTo = \sanitize_return_path($_GET['back_to'] ?? null, '/dashboard');
 
-        $transactions = (new Transaction())->listByUserWithFilters($userId, $filters);
+        $transactionModel = new Transaction();
+        $transactions = $transactionModel->listByUserWithFilters($userId, $filters);
+        $totals = $transactionModel->totalsByUserWithFilters($userId, $filters);
         $categories = (new Category())->allForUser($userId);
-
-        // Calculate totals for filtered transactions
-        $totalIncome = 0;
-        $totalExpense = 0;
-        foreach ($transactions as $transaction) {
-            if ($transaction['type'] === 'income') {
-                $totalIncome += (float) $transaction['amount'];
-            } else {
-                $totalExpense += (float) $transaction['amount'];
-            }
-        }
-        $totalBalance = $totalIncome - $totalExpense;
 
         $this->view('transactions/index', [
             'title' => 'Transactions',
@@ -50,9 +40,9 @@ class TransactionController extends Controller
             'categories' => $categories,
             'filters' => $filters,
             'backTo' => $backTo,
-            'totalIncome' => $totalIncome,
-            'totalExpense' => $totalExpense,
-            'totalBalance' => $totalBalance,
+            'totalIncome' => $totals['total_income'],
+            'totalExpense' => $totals['total_expense'],
+            'totalBalance' => $totals['total_balance'],
         ]);
     }
 
@@ -202,7 +192,9 @@ class TransactionController extends Controller
         $amountInput = $_POST['amount'] ?? '';
         $amountInput = is_string($amountInput) ? trim($amountInput) : '';
         $amountHasValidFormat = preg_match('/\A[0-9]+(?:\.[0-9]{1,2})?\z/', $amountInput) === 1;
-        $numericAmount = $amountHasValidFormat ? (float) $amountInput : 0.0;
+        $amountIsPositive = preg_match('/[1-9]/', $amountInput) === 1;
+        $amountExceedsMaximum = $amountHasValidFormat
+            && \money_greater_than($amountInput, '9999999999.99');
 
         $descriptionInput = $_POST['description'] ?? '';
         $description = is_string($descriptionInput) ? trim($descriptionInput) : '';
@@ -229,9 +221,9 @@ class TransactionController extends Controller
             $errors['amount'] = 'Amount is required.';
         } elseif (!$amountHasValidFormat) {
             $errors['amount'] = 'Enter a valid amount with up to two decimal places.';
-        } elseif ($numericAmount <= 0) {
+        } elseif (!$amountIsPositive) {
             $errors['amount'] = 'Amount must be greater than 0.';
-        } elseif ($numericAmount > 9999999999.99) {
+        } elseif ($amountExceedsMaximum) {
             $errors['amount'] = 'Amount cannot exceed 9,999,999,999.99.';
         }
 

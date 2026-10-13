@@ -42,6 +42,65 @@ function e(string $value): string
     return htmlspecialchars($value, ENT_QUOTES, 'UTF-8');
 }
 
+function format_money(string $amount): string
+{
+    if (preg_match('/\A(-?)([0-9]+)(?:\.([0-9]{1,2}))?\z/', $amount, $parts) !== 1) {
+        throw new \InvalidArgumentException('Money values must be decimal strings with up to two fractional digits.');
+    }
+
+    $whole = ltrim($parts[2], '0');
+    $whole = $whole === '' ? '0' : $whole;
+    $formattedWhole = preg_replace('/\B(?=(\d{3})+(?!\d))/', ',', $whole);
+
+    if ($formattedWhole === null) {
+        throw new \RuntimeException('Unable to format monetary amount.');
+    }
+
+    $fraction = str_pad($parts[3] ?? '', 2, '0');
+    $sign = $whole === '0' && $fraction === '00' ? '' : $parts[1];
+
+    return $sign . $formattedWhole . '.' . $fraction;
+}
+
+function money_is_negative(string $amount): bool
+{
+    return str_starts_with($amount, '-')
+        && preg_match('/[1-9]/', $amount) === 1;
+}
+
+function money_greater_than(string $amount, string $limit): bool
+{
+    $pattern = '/\A([0-9]+)(?:\.([0-9]{1,2}))?\z/';
+    $amountParts = [];
+    $limitParts = [];
+
+    if (
+        preg_match($pattern, $amount, $amountParts) !== 1
+        || preg_match($pattern, $limit, $limitParts) !== 1
+    ) {
+        throw new \InvalidArgumentException('Money comparisons require non-negative decimal values with up to two fractional digits.');
+    }
+
+    $amountWhole = ltrim($amountParts[1], '0');
+    $limitWhole = ltrim($limitParts[1], '0');
+    $amountWhole = $amountWhole === '' ? '0' : $amountWhole;
+    $limitWhole = $limitWhole === '' ? '0' : $limitWhole;
+
+    if (strlen($amountWhole) !== strlen($limitWhole)) {
+        return strlen($amountWhole) > strlen($limitWhole);
+    }
+
+    $wholeComparison = strcmp($amountWhole, $limitWhole);
+    if ($wholeComparison !== 0) {
+        return $wholeComparison > 0;
+    }
+
+    return strcmp(
+        str_pad($amountParts[2] ?? '', 2, '0'),
+        str_pad($limitParts[2] ?? '', 2, '0')
+    ) > 0;
+}
+
 function csrf_token(): string
 {
     $token = $_SESSION['_csrf_token'] ?? null;
@@ -131,9 +190,9 @@ function sanitize_return_path(?string $path, string $default = '/transactions'):
     return $routePath . $query;
 }
 
-function get_user_total_balance(int $userId): float
+function get_user_total_balance(int $userId): string
 {
     $transactionModel = new \App\Models\Transaction();
     $summary = $transactionModel->getDashboardSummary($userId, []);
-    return (float) ($summary['total_balance'] ?? 0);
+    return (string) ($summary['total_balance'] ?? '0.00');
 }

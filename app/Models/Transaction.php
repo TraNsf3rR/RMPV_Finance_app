@@ -78,45 +78,82 @@ class Transaction
 
     public function listByUserWithFilters(int $userId, array $filters): array
     {
+        $filter = $this->buildFilteredTransactionWhere($userId, $filters);
         $sql = 'SELECT t.*, c.name AS category_name
                 FROM transactions t
                 JOIN categories c ON c.id = t.category_id
-                WHERE t.user_id = :user_id
-                  AND (c.user_id IS NULL OR c.user_id = :user_id)';
+                WHERE ' . $filter['sql'] . '
+                ORDER BY t.transaction_date DESC, t.id DESC';
 
+        $stmt = Database::connection()->prepare($sql);
+        $stmt->execute($filter['params']);
+
+        return $stmt->fetchAll();
+    }
+
+    public function totalsByUserWithFilters(int $userId, array $filters): array
+    {
+        $filter = $this->buildFilteredTransactionWhere($userId, $filters);
+        $sql = 'SELECT
+                    COALESCE(SUM(CASE WHEN t.type = "income" THEN t.amount ELSE 0 END), 0.00) AS total_income,
+                    COALESCE(SUM(CASE WHEN t.type = "expense" THEN t.amount ELSE 0 END), 0.00) AS total_expense,
+                    COALESCE(SUM(CASE
+                        WHEN t.type = "income" THEN t.amount
+                        WHEN t.type = "expense" THEN -t.amount
+                        ELSE 0
+                    END), 0.00) AS total_balance
+                FROM transactions t
+                JOIN categories c ON c.id = t.category_id
+                WHERE ' . $filter['sql'];
+
+        $stmt = Database::connection()->prepare($sql);
+        $stmt->execute($filter['params']);
+        $totals = $stmt->fetch() ?: [];
+
+        return [
+            'total_income' => (string) ($totals['total_income'] ?? '0.00'),
+            'total_expense' => (string) ($totals['total_expense'] ?? '0.00'),
+            'total_balance' => (string) ($totals['total_balance'] ?? '0.00'),
+        ];
+    }
+
+    private function buildFilteredTransactionWhere(int $userId, array $filters): array
+    {
+        $conditions = [
+            't.user_id = :user_id',
+            '(c.user_id IS NULL OR c.user_id = :user_id)',
+        ];
         $params = ['user_id' => $userId];
 
         if (!empty($filters['from_date'])) {
-            $sql .= ' AND t.transaction_date >= :from_date';
+            $conditions[] = 't.transaction_date >= :from_date';
             $params['from_date'] = $filters['from_date'];
         }
 
         if (!empty($filters['to_date'])) {
-            $sql .= ' AND t.transaction_date <= :to_date';
+            $conditions[] = 't.transaction_date <= :to_date';
             $params['to_date'] = $filters['to_date'];
         }
 
         if (!empty($filters['type'])) {
-            $sql .= ' AND t.type = :type';
+            $conditions[] = 't.type = :type';
             $params['type'] = $filters['type'];
         }
 
         if (!empty($filters['category_id'])) {
-            $sql .= ' AND t.category_id = :category_id';
+            $conditions[] = 't.category_id = :category_id';
             $params['category_id'] = (int) $filters['category_id'];
         }
 
         if (!empty($filters['search'])) {
-            $sql .= ' AND (t.description LIKE :search OR c.name LIKE :search)';
+            $conditions[] = '(t.description LIKE :search OR c.name LIKE :search)';
             $params['search'] = '%' . trim((string) $filters['search']) . '%';
         }
 
-        $sql .= ' ORDER BY t.transaction_date DESC, t.id DESC';
-
-        $stmt = Database::connection()->prepare($sql);
-        $stmt->execute($params);
-
-        return $stmt->fetchAll();
+        return [
+            'sql' => implode(' AND ', $conditions),
+            'params' => $params,
+        ];
     }
 
     public function getDashboardSummary(int $userId, array $period): array
@@ -127,13 +164,16 @@ class Transaction
 
         $totalStmt = $pdo->prepare(
             'SELECT
-                COALESCE(SUM(CASE WHEN type = "income" THEN amount ELSE 0 END), 0) AS total_income,
-                COALESCE(SUM(CASE WHEN type = "expense" THEN amount ELSE 0 END), 0) AS total_expense
+                COALESCE(SUM(CASE
+                    WHEN type = "income" THEN amount
+                    WHEN type = "expense" THEN -amount
+                    ELSE 0
+                END), 0.00) AS total_balance
              FROM transactions
              WHERE user_id = :user_id'
         );
         $totalStmt->execute(['user_id' => $userId]);
-        $total = $totalStmt->fetch() ?: ['total_income' => 0, 'total_expense' => 0];
+        $total = $totalStmt->fetch() ?: ['total_balance' => '0.00'];
 
         $monthlyStmt = $pdo->prepare(
             'SELECT
@@ -149,12 +189,12 @@ class Transaction
             'year' => $year,
             'month' => $month,
         ]);
-        $monthly = $monthlyStmt->fetch() ?: ['monthly_income' => 0, 'monthly_expense' => 0];
+        $monthly = $monthlyStmt->fetch() ?: ['monthly_income' => '0.00', 'monthly_expense' => '0.00'];
 
         return [
-            'total_balance' => (float) $total['total_income'] - (float) $total['total_expense'],
-            'monthly_income' => (float) $monthly['monthly_income'],
-            'monthly_expense' => (float) $monthly['monthly_expense'],
+            'total_balance' => (string) $total['total_balance'],
+            'monthly_income' => (string) $monthly['monthly_income'],
+            'monthly_expense' => (string) $monthly['monthly_expense'],
         ];
     }
 

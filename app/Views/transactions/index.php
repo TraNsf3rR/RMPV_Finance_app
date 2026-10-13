@@ -1,4 +1,7 @@
-<?php $backTo = sanitize_return_path($backTo ?? '/dashboard'); ?>
+<?php
+$backTo = sanitize_return_path($backTo ?? '/dashboard');
+$totalBalanceIsNegative = money_is_negative((string) $totalBalance);
+?>
 
 <section class="page-head">
     <div>
@@ -70,19 +73,19 @@
 <section class="stats-grid">
     <article class="stat-card">
         <h3>Balance</h3>
-        <p class="stat-value <?= $totalBalance >= 0 ? 'text-income' : 'text-expense' ?>">
-            €<?= number_format($totalBalance, 2) ?>
+        <p class="stat-value <?= $totalBalanceIsNegative ? 'text-expense' : 'text-income' ?>">
+            €<?= format_money((string) $totalBalance) ?>
         </p>
     </article>
 
     <article class="stat-card">
         <h3>Income</h3>
-        <p class="stat-value text-income">€<?= number_format($totalIncome, 2) ?></p>
+        <p class="stat-value text-income">€<?= format_money((string) $totalIncome) ?></p>
     </article>
 
     <article class="stat-card">
         <h3>Expenses</h3>
-        <p class="stat-value text-expense">€<?= number_format($totalExpense, 2) ?></p>
+        <p class="stat-value text-expense">€<?= format_money((string) $totalExpense) ?></p>
     </article>
 </section>
 
@@ -112,7 +115,7 @@
                         <td><?= e($item['category_name']) ?></td>
                         <td class="description-cell"><?= e($item['description'] ?: '-') ?></td>
                         <td class="amount-cell <?= $item['type'] === 'income' ? 'text-income' : 'text-expense' ?>">
-                            <?= $item['type'] === 'income' ? '+' : '-' ?>€<?= number_format((float) $item['amount'], 2) ?>
+                            <?= $item['type'] === 'income' ? '+' : '-' ?>€<?= format_money((string) $item['amount']) ?>
                         </td>
                         <td class="actions-cell">
                             <a class="btn" href="<?= url('/transactions/edit/' . (int) $item['id'] . '?back_to=' . rawurlencode($backTo)) ?>" aria-label="Edit transaction: <?= e($item['description'] ?: $item['category_name']) ?>">Edit</a>

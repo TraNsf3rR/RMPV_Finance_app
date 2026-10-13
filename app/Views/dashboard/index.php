@@ -1,3 +1,5 @@
+<?php $totalBalanceIsNegative = money_is_negative((string) $summary['total_balance']); ?>
+
 <section class="page-head">
     <div>
         <h1>Dashboard</h1>
@@ -29,19 +31,19 @@
 <section class="stats-grid">
     <article class="stat-card">
         <h3>Total Balance</h3>
-        <p class="stat-value <?= $summary['total_balance'] >= 0 ? 'text-income' : 'text-expense' ?>">
-            €<?= number_format($summary['total_balance'], 2) ?>
+        <p class="stat-value <?= $totalBalanceIsNegative ? 'text-expense' : 'text-income' ?>">
+            €<?= format_money((string) $summary['total_balance']) ?>
         </p>
     </article>
 
     <article class="stat-card">
         <h3><?= e($selectedMonthLabel) ?> Income</h3>
-        <p class="stat-value text-income">€<?= number_format($summary['monthly_income'], 2) ?></p>
+        <p class="stat-value text-income">€<?= format_money((string) $summary['monthly_income']) ?></p>
     </article>
 
     <article class="stat-card">
         <h3><?= e($selectedMonthLabel) ?> Expenses</h3>
-        <p class="stat-value text-expense">€<?= number_format($summary['monthly_expense'], 2) ?></p>
+        <p class="stat-value text-expense">€<?= format_money((string) $summary['monthly_expense']) ?></p>
     </article>
 </section>
 
@@ -98,7 +100,7 @@
                         <td><?= e($item['category_name']) ?></td>
                         <td class="description-cell"><?= e($item['description'] ?: '-') ?></td>
                         <td class="amount-cell <?= $item['type'] === 'income' ? 'text-income' : 'text-expense' ?>">
-                            <?= $item['type'] === 'income' ? '+' : '-' ?>€<?= number_format((float) $item['amount'], 2) ?>
+                            <?= $item['type'] === 'income' ? '+' : '-' ?>€<?= format_money((string) $item['amount']) ?>
                         </td>
                     </tr>
                 <?php endforeach; ?>

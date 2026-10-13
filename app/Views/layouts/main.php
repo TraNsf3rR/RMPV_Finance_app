@@ -7,10 +7,12 @@ $flash = $_SESSION['flash'] ?? null;
 $transactionsNavPath = sanitize_return_path($transactionsNavPath ?? '/transactions', '/transactions');
 
 // Calculate total balance for all transactions
-$totalBalance = 0;
+$totalBalance = '0.00';
 if ($user) {
     $totalBalance = get_user_total_balance((int) $user['id']);
 }
+$totalBalanceIsNegative = money_is_negative($totalBalance);
+$totalBalanceMagnitude = $totalBalanceIsNegative ? substr($totalBalance, 1) : $totalBalance;
 
 unset($_SESSION['flash']);
 ?>
@@ -46,9 +48,9 @@ unset($_SESSION['flash']);
                     <a href="<?= url('/categories') ?>">Categories</a>
                 </nav>
                 <div class="topbar-account">
-                    <div class="balance-display <?= $totalBalance >= 0 ? 'text-income' : 'text-expense' ?>">
+                    <div class="balance-display <?= $totalBalanceIsNegative ? 'text-expense' : 'text-income' ?>">
                         <span>Total Balance:</span>
-                        <strong><?= $totalBalance >= 0 ? '' : '-' ?>€<?= number_format(abs($totalBalance), 2) ?></strong>
+                        <strong><?= $totalBalanceIsNegative ? '-' : '' ?>€<?= format_money($totalBalanceMagnitude) ?></strong>
                     </div>
                     <div class="user-block">
                         <span><?= e($user['name']) ?></span>
