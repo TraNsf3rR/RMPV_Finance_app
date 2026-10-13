@@ -123,4 +123,5 @@ window.dashboardData = {
     }
 };
 </script>
+<script src="/assets/js/vendor/chart.js-4.5.1/chart.umd.min.js"></script>
 <script src="/assets/js/dashboard.js"></script>

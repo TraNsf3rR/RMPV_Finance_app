@@ -94,3 +94,4 @@ The PHP built-in server can serve this app using `public/index.php` as its front
 
 - Routes are defined in `routes.php`.
 - `public/index.php` remains the front controller, but the web server forwards clean URLs such as `/dashboard` to it internally.
+- Chart.js 4.5.1 is bundled locally under the MIT license in [`public/assets/js/vendor/chart.js-4.5.1/`](./public/assets/js/vendor/chart.js-4.5.1/) and loaded only on the dashboard.

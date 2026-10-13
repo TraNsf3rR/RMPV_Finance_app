@@ -24,7 +24,6 @@ unset($_SESSION['flash']);
     <title><?= e(($title ?? 'Finance Tracker') . ' | ' . config('app_name', 'Finance Tracker')) ?></title>
     <script src="/assets/js/theme.js"></script>
     <link rel="stylesheet" href="/assets/css/style.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
     <div class="bg-glow glow-1"></div>
