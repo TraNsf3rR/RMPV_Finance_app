@@ -35,7 +35,6 @@ Simple PHP MVC finance tracker with a dark theme and a selectable light theme, b
   - Models/
   - Views/
 - config/
-- database/
 - public/
   - .htaccess (Apache URL rewriting)
   - assets/
